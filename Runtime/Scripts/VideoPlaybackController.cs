@@ -1,7 +1,8 @@
 ﻿using System.Collections;
+using System.Threading.Tasks;
 using UnityEngine.Video;
 
-namespace TestYouTube {
+namespace TCS.YoutubePlayer {
     [RequireComponent( typeof(VideoPlayer) )]
     [DisallowMultipleComponent]
     public class VideoPlaybackController : MonoBehaviour {
@@ -35,9 +36,9 @@ namespace TestYouTube {
             m_player.Stop();
         }
 
-        public void SeekAbsolute(float seconds) {
+        public async void SeekAbsolute(float seconds) {
             if ( !m_player.canSetTime ) return;
-            StartCoroutine( SeekRoutine( seconds ) );
+            await SeekAsync( seconds );
         }
 
         public void SeekRelative(float deltaSeconds) => SeekAbsolute( (float)m_player.time + deltaSeconds );
@@ -65,16 +66,17 @@ namespace TestYouTube {
 
         /* ───────────────── INTERNAL ───────────────── */
 
-        IEnumerator SeekRoutine(float toTime) {
-            if ( !m_player.isPrepared ) yield break;
+        async Task SeekAsync(float toTime) {
+            if ( !m_player.isPrepared ) return;
 
             m_player.time = Mathf.Clamp( toTime, 0f, (float)m_player.length );
 
             // For streamed videos we pause + prepare, so Unity buffers before replaying.
             m_player.Pause();
             m_player.Prepare();
+            
             while (!m_player.isPrepared) {
-                yield return null;
+                await Task.Yield();
             }
 
             m_player.Play();

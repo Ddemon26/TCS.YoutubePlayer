@@ -33,13 +33,15 @@ namespace TCS.YoutubePlayer {
                 try {
                     await YtDlpExternalTool.PerformYtDlpUpdateCheckAsync(m_cts.Token);
                 }
+                catch (OperationCanceledException) {
+                    Debug.LogWarning("[YoutubePlayer] yt-dlp update check was cancelled during initialization.");
+                }
                 catch (Exception e) {
-                    Debug.LogError( $"YoutubeStreamPlayerAsync: {e.Message}" );
+                    Debug.LogError($"[YoutubePlayer] Failed to check for yt-dlp updates: {e.Message}");
                 }
             }
             catch (Exception e) {
-                Debug.LogError( $"[CustomVideoPlayer] Failed to initialize VideoPlayer: {e.Message}" );
-                // Optionally, you can handle specific exceptions or fallback logic here
+                Debug.LogError($"[YoutubePlayer] Failed to initialize VideoPlayer: {e.Message}");
             }
         }
 
@@ -51,22 +53,22 @@ namespace TCS.YoutubePlayer {
                 }
 
                 m_currentVideoUrl = url; // Store the URL we are trying to play
-                Debug.Log( $"[CustomVideoPlayer] Attempting to play: {url}" );
+                Debug.Log($"[YoutubePlayer] Attempting to play: {url}");
 
                 string directUrlAsync = await YtDlpExternalTool.GetDirectUrlAsync( url, m_cts.Token ); 
 
                 if ( IsMp4Stream( directUrlAsync ) ) {
                     if ( !m_isAllowedToDownload ) {
-                        Debug.LogWarning( $"[CustomVideoPlayer] Download is not allowed. Playing the URL directly: {directUrlAsync}" );
+                        Debug.LogWarning($"[YoutubePlayer] Download is not allowed. Playing the URL directly: {directUrlAsync}");
                         return;
                     }
                 
                 
-                    Debug.Log( $"[CustomVideoPlayer] Detected Mp4 stream: {directUrlAsync}" );
+                    Debug.Log($"[YoutubePlayer] Detected Mp4 stream: {directUrlAsync}");
                     try {
                         string mp4Path = await YtDlpExternalTool.ConvertToMp4Async( directUrlAsync, m_cts.Token );
                         if ( !string.IsNullOrEmpty( mp4Path ) ) {
-                            Debug.Log( $"[CustomVideoPlayer] Preemptive conversion successful. Playing local file: {mp4Path}" );
+                            Debug.Log($"[YoutubePlayer] Preemptive conversion successful. Playing local file: {mp4Path}");
                             m_videoPlayer.source = VideoSource.Url;
                             m_videoPlayer.url = "file://" + mp4Path;
                             m_videoPlayer.Prepare();
@@ -74,10 +76,13 @@ namespace TCS.YoutubePlayer {
                         
                         }
 
-                        Debug.LogWarning( $"[CustomVideoPlayer] Preemptive conversion failed or returned an empty path for URL: {directUrlAsync}" );
+                        Debug.LogWarning($"[YoutubePlayer] Preemptive conversion failed or returned an empty path for URL: {directUrlAsync}");
+                    }
+                    catch (OperationCanceledException) {
+                        Debug.LogWarning($"[YoutubePlayer] MP4 conversion was cancelled for URL: {directUrlAsync}");
                     }
                     catch (Exception ex) {
-                        Debug.LogError( $"[CustomVideoPlayer] Preemptive conversion failed: {ex.Message}" );
+                        Debug.LogError($"[YoutubePlayer] Preemptive conversion failed: {ex.Message}");
                     }
                 }
 
@@ -87,14 +92,14 @@ namespace TCS.YoutubePlayer {
                 m_videoPlayer.url = directUrlAsync;
                 m_videoPlayer.Prepare();
             }
+            catch (OperationCanceledException) {
+                Debug.LogWarning($"[YoutubePlayer] Video playback was cancelled for URL: {m_currentVideoUrl}");
+            }
+            catch (Exception e) when (e.Message.Contains("Requested format is not available")) {
+                Debug.LogError($"[YoutubePlayer] The requested video format is not available for URL: {m_currentVideoUrl}. Try a different video or format.");
+            }
             catch (Exception e) {
-                Debug.LogError( $"[CustomVideoPlayer] Exception occurred while preparing video: {e.Message}" );
-                // Optionally, you can handle specific exceptions or fallback logic here
-                if ( e.Message.Contains( "Requested format is not available" ) ) {
-                    Debug.LogError( $"[CustomVideoPlayer] The requested video format is not available for URL: {m_currentVideoUrl}. Try a different video or format." );
-                    // Optionally, implement fallback logic here, e.g., try fetching a list of available formats
-                    // or inform the user more directly.
-                }
+                Debug.LogError($"[YoutubePlayer] Exception occurred while preparing video: {e.Message}");
             }
         }
 
@@ -105,16 +110,15 @@ namespace TCS.YoutubePlayer {
                    || url.Contains( "m3u8" ));
 
         static void VideoPlayerOnPrepareCompleted(VideoPlayer source) {
-            Debug.Log( $"[CustomVideoPlayer] Video prepared. Playing: {source.url}" );
+            Debug.Log($"[YoutubePlayer] Video prepared. Playing: {source.url}");
             source.Play();
         }
 
         void HandleVideoError(VideoPlayer source, string message) {
-            Debug.LogError( $"[CustomVideoPlayer] VideoPlayer error: {message}" );
-            if ( m_currentVideoUrl != null ) {
-                Debug.LogError( $"[CustomVideoPlayer] Failed to play video from URL: {m_currentVideoUrl}" );
+            Debug.LogError($"[YoutubePlayer] VideoPlayer error: {message}");
+            if (m_currentVideoUrl != null) {
+                Debug.LogError($"[YoutubePlayer] Failed to play video from URL: {m_currentVideoUrl}");
             }
-            // Optionally, you can implement fallback logic or user notifications here
         }
 
         void OnDestroy() {

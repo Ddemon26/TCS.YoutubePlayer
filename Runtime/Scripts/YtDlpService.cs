@@ -15,7 +15,7 @@ namespace TCS.YoutubePlayer {
         Failed,
     }
 
-    public class YtDlpService {
+    public class YtDlpService : IDisposable {
         const string YT_DLP_TITLE_ARGS_FORMAT = "--get-title --get-url -f \"best[ext=mp4]/best\" --no-warnings \"{0}\"";
         const string BROWSER_FOR_COOKIES = "firefox";
 
@@ -230,6 +230,12 @@ namespace TCS.YoutubePlayer {
             if (string.IsNullOrEmpty(text)) return false;
             return text.Contains("is already the newest version", StringComparison.OrdinalIgnoreCase)
                    || text.Contains("is up to date", StringComparison.OrdinalIgnoreCase);
+        }
+
+        public void Dispose() {
+            m_mp4Converter?.Dispose();
+            m_processExecutor?.Dispose();
+            m_urlCache?.Dispose();
         }
     }
 }

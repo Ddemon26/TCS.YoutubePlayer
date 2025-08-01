@@ -7,7 +7,7 @@ using TCS.YoutubePlayer.UrlProcessing;
 using Logger = TCS.YoutubePlayer.Utils.Logger;
 
 namespace TCS.YoutubePlayer.Caching {
-    public class YtDlpUrlCache {
+    public class YtDlpUrlCache : IDisposable {
         readonly ConcurrentDictionary<string, CacheEntry> m_cache = new();
         readonly TimeSpan m_defaultCacheExpiration = TimeSpan.FromHours(4);
         readonly string m_cacheFilePath = Path.Combine(Application.persistentDataPath, "yt_dlp_url_cache.json");
@@ -112,6 +112,11 @@ namespace TCS.YoutubePlayer.Caching {
 
         string ExtractVideoIdOrUrl(string videoUrl) {
             return m_urlProcessor.TryExtractVideoId(videoUrl) ?? videoUrl;
+        }
+
+        public void Dispose() {
+            SaveCacheToFile();
+            m_cache.Clear();
         }
     }
 }

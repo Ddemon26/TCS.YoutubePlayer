@@ -11,7 +11,7 @@ using TCS.YoutubePlayer.UrlProcessing;
 using Logger = TCS.YoutubePlayer.Utils.Logger;
 
 namespace TCS.YoutubePlayer.VideoConversion {
-    public class Mp4Converter {
+    public class Mp4Converter : IDisposable {
         readonly ProcessExecutor m_processExecutor;
         readonly YouTubeUrlProcessor m_urlProcessor;
         readonly ConcurrentDictionary<string, Mp4ConversionEntry> m_mp4ConversionCache = new();
@@ -112,6 +112,20 @@ namespace TCS.YoutubePlayer.VideoConversion {
             using var sha256 = SHA256.Create();
             byte[] hashBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(url));
             return BitConverter.ToString(hashBytes).Replace("-", "").ToLowerInvariant();
+        }
+
+        public void Dispose() {
+            foreach (var entry in m_mp4ConversionCache.Values) {
+                try {
+                    if (File.Exists(entry.OutputFilePath)) {
+                        File.Delete(entry.OutputFilePath);
+                    }
+                }
+                catch (IOException ex) {
+                    Logger.LogError($"[Mp4Converter] Error deleting cached file {entry.OutputFilePath} during disposal: {ex.Message}");
+                }
+            }
+            m_mp4ConversionCache.Clear();
         }
     }
 }

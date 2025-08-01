@@ -7,7 +7,7 @@ using TCS.YoutubePlayer.Exceptions;
 using Logger = TCS.YoutubePlayer.Utils.Logger;
 
 namespace TCS.YoutubePlayer.ProcessExecution {
-    public class ProcessExecutor {
+    public class ProcessExecutor : IDisposable {
         readonly string m_ffmpegPath;
 
         public ProcessExecutor(string ffmpegPath) {
@@ -117,6 +117,11 @@ namespace TCS.YoutubePlayer.ProcessExecution {
             #else
             process.StartInfo.EnvironmentVariables["FFMPEG_LOCATION"] = _ffmpegPath;
             #endif
+        }
+
+        public void Dispose() {
+            // ProcessExecutor doesn't hold any disposable resources
+            // Processes are disposed in the Exited event handler
         }
     }
 }
