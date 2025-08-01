@@ -6,7 +6,7 @@ namespace TCS.YoutubePlayer.Utils {
         const string CONTEXT_COLOR = "white";
         
         const string COLOR_LOG = "green";
-        const string TEXT_LOG ="LOG:";
+        //const string TEXT_LOG ="LOG:";
         
         const string COLOR_WARNING = "yellow";
         const string TEXT_WARNING = "WARNING:";
@@ -41,7 +41,7 @@ namespace TCS.YoutubePlayer.Utils {
         static string FormatMessage(object message, LogType logType) {
             // [Classname/No color] [LogType/Color] [Message/No color]
             string type = logType switch {
-                LogType.Log => TEXT_LOG,
+                //LogType.Log => TEXT_LOG,
                 LogType.Warning => TEXT_WARNING,
                 LogType.Error => TEXT_ERROR,
                 LogType.Assert => TEXT_ASSERT,
@@ -50,7 +50,7 @@ namespace TCS.YoutubePlayer.Utils {
             };
             
             return $"{CLASS_NAME.SetClassPrefix()}" +
-                   $" {type.SetLogPrefix(logType)} " +
+                   $"{type.SetLogPrefix(logType)}" +
                    $"{message.SetMessagePrefix()}";
         }
 
