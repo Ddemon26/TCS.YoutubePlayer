@@ -12,17 +12,15 @@ namespace TCS.YoutubePlayer.ToolManagement {
     public class ToolDownloadManager : IDisposable {
         readonly HttpClient m_httpClient;
         readonly string m_toolsDirectory;
-        readonly string m_nameVersion;
 
         const string YT_DLP_WINDOWS_URL = "https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp.exe";
         const string FFMPEG_WINDOWS_URL = "https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.zip";
         const string TOOL_VERSION_FILE = "tool_versions.json";
 
-        public ToolDownloadManager(string nameVersion) {
+        public ToolDownloadManager() {
             m_httpClient = new HttpClient();
             m_httpClient.DefaultRequestHeaders.Add("User-Agent", "TCS.YoutubePlayer/1.0");
-            m_nameVersion = nameVersion;
-            m_toolsDirectory = Path.Combine(Application.streamingAssetsPath, m_nameVersion);
+            m_toolsDirectory = Application.streamingAssetsPath;
             Directory.CreateDirectory(m_toolsDirectory);
         }
 
