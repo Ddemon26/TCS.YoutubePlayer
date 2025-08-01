@@ -1,9 +1,9 @@
 /* Import base styles */
 @import url('index-base.css');
 
-/* Blue theme CSS variables */
+/* YouTube-themed CSS variables */
 :root {
-    --header-bg: #2563eb;
+    --header-bg: #ff0000;
     --header-text: #ffffff;
     --bg-primary: #ffffff;
     --bg-secondary: #f8f8f8;
@@ -11,10 +11,10 @@
     --text-primary: #000000;
     --text-secondary: #333333;
     --text-muted: #666666;
-    --accent-primary: #2563eb;
-    --accent-secondary: #1d4ed8;
-    --accent-light: #dbeafe;
-    --accent-lighter: #eff6ff;
+    --accent-primary: #ff0000;
+    --accent-secondary: #cc0000;
+    --accent-light: #ffebee;
+    --accent-lighter: #fff5f5;
     --border-primary: #cccccc;
     --border-secondary: #e0e0e0;
     --shadow-light: rgba(0,0,0,0.1);
@@ -22,7 +22,7 @@
     --error-border: #fed7d7;
     --error-text: #c53030;
     --error-text-secondary: #742a2a;
-    --theme-toggle-bg: #2563eb;
+    --theme-toggle-bg: #ff0000;
     --theme-toggle-text: #ffffff;
     --sidebar-bg: #f8f8f8;
     --toc-bg: #ffffff;
@@ -107,8 +107,9 @@
 
 .nav-section.collapsed .nav-section-title::before {
     transform: rotate(-90deg);
-}/* ArcadeVe
-hicle Documentation Styles */
+}
+
+/* TCS.YoutubePlayer Documentation Styles */
 
 /* Welcome section styling */
 .welcome-section {
@@ -246,33 +247,33 @@ hicle Documentation Styles */
     color: var(--text-secondary);
 }
 
-/* Physics features grid */
-.physics-features {
+/* Video features grid */
+.video-features {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     gap: 1.5rem;
     margin: 2rem 0;
 }
 
-.physics-card {
+.video-card {
     background: var(--bg-secondary);
     padding: 1.5rem;
     border-radius: 6px;
     border: 1px solid var(--border-secondary);
 }
 
-.physics-card h4 {
+.video-card h4 {
     color: var(--accent-primary);
     margin-bottom: 1rem;
     font-size: 1.1rem;
 }
 
-.physics-card ul {
+.video-card ul {
     margin: 0;
     padding-left: 1.2rem;
 }
 
-.physics-card li {
+.video-card li {
     margin-bottom: 0.5rem;
     color: var(--text-primary);
     font-size: 0.9rem;
@@ -485,7 +486,7 @@ table tr:hover {
         align-items: center;
     }
     
-    .physics-features,
+    .video-features,
     .debug-features,
     .performance-features,
     .next-steps {
