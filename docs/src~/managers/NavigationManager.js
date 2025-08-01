@@ -5,7 +5,7 @@ class NavigationManager {
 
     async load() {
         try {
-            const response = await fetch('documents/navigation.json');
+            const response = await fetch('documents~/navigation.json');
             if (response.ok) {
                 this.navigation = await response.json();
             } else {
@@ -22,80 +22,80 @@ class NavigationManager {
             {
                 title: "Getting Started",
                 items: [
-                    { title: "Introduction", path: "documents/introduction.md" },
-                    { title: "Installation", path: "documents/installation.md" },
-                    { title: "Quick Start", path: "documents/quick-start.md" }
+                    { title: "Introduction", path: "documents~/introduction.md" },
+                    { title: "Installation", path: "documents~/installation.md" },
+                    { title: "Quick Start", path: "documents~/quick-start.md" }
                 ]
             },
             {
                 title: "Language Reference",
                 items: [
-                    { title: "Lexical Analysis", path: "documents/lexical.md" },
-                    { title: "Source Text", path: "documents/lexical.md#source-text" },
-                    { title: "Character Set", path: "documents/lexical.md#character-set" },
-                    { title: "End of File", path: "documents/lexical.md#end-of-file" },
-                    { title: "End of Line", path: "documents/lexical.md#end-of-line" },
-                    { title: "White Space", path: "documents/lexical.md#white-space" },
-                    { title: "Comments", path: "documents/lexical.md#comments" },
-                    { title: "Tokens", path: "documents/lexical.md#tokens" },
-                    { title: "Identifiers", path: "documents/lexical.md#identifiers" },
-                    { title: "String Literals", path: "documents/lexical.md#string-literals" },
-                    { title: "Wysiwyg Strings", path: "documents/lexical.md#wysiwyg-strings" },
-                    { title: "Double Quoted Strings", path: "documents/lexical.md#double-quoted-strings" },
-                    { title: "Delimited Strings", path: "documents/lexical.md#delimited-strings" },
-                    { title: "Token Strings", path: "documents/lexical.md#token-strings" },
-                    { title: "Hex Strings", path: "documents/lexical.md#hex-strings" },
-                    { title: "String Postfix", path: "documents/lexical.md#string-postfix" },
-                    { title: "Character Literals", path: "documents/lexical.md#character-literals" },
-                    { title: "Integer Literals", path: "documents/lexical.md#integer-literals" },
-                    { title: "Floating Point Literals", path: "documents/lexical.md#floating-point-literals" },
-                    { title: "Keywords", path: "documents/lexical.md#keywords" },
-                    { title: "Special Tokens", path: "documents/lexical.md#special-tokens" },
-                    { title: "Special Token Sequences", path: "documents/lexical.md#special-token-sequences" }
+                    { title: "Lexical Analysis", path: "documents~/lexical.md" },
+                    { title: "Source Text", path: "documents~/lexical.md#source-text" },
+                    { title: "Character Set", path: "documents~/lexical.md#character-set" },
+                    { title: "End of File", path: "documents~/lexical.md#end-of-file" },
+                    { title: "End of Line", path: "documents~/lexical.md#end-of-line" },
+                    { title: "White Space", path: "documents~/lexical.md#white-space" },
+                    { title: "Comments", path: "documents~/lexical.md#comments" },
+                    { title: "Tokens", path: "documents~/lexical.md#tokens" },
+                    { title: "Identifiers", path: "documents~/lexical.md#identifiers" },
+                    { title: "String Literals", path: "documents~/lexical.md#string-literals" },
+                    { title: "Wysiwyg Strings", path: "documents~/lexical.md#wysiwyg-strings" },
+                    { title: "Double Quoted Strings", path: "documents~/lexical.md#double-quoted-strings" },
+                    { title: "Delimited Strings", path: "documents~/lexical.md#delimited-strings" },
+                    { title: "Token Strings", path: "documents~/lexical.md#token-strings" },
+                    { title: "Hex Strings", path: "documents~/lexical.md#hex-strings" },
+                    { title: "String Postfix", path: "documents~/lexical.md#string-postfix" },
+                    { title: "Character Literals", path: "documents~/lexical.md#character-literals" },
+                    { title: "Integer Literals", path: "documents~/lexical.md#integer-literals" },
+                    { title: "Floating Point Literals", path: "documents~/lexical.md#floating-point-literals" },
+                    { title: "Keywords", path: "documents~/lexical.md#keywords" },
+                    { title: "Special Tokens", path: "documents~/lexical.md#special-tokens" },
+                    { title: "Special Token Sequences", path: "documents~/lexical.md#special-token-sequences" }
                 ]
             },
             {
                 title: "API Reference",
                 items: [
-                    { title: "Overview", path: "documents/api/overview.md" },
-                    { title: "Authentication", path: "documents/api/authentication.md" },
-                    { title: "API Keys", path: "documents/api/auth/api-keys.md" }
+                    { title: "Overview", path: "documents~/api/overview.md" },
+                    { title: "Authentication", path: "documents~/api/authentication.md" },
+                    { title: "API Keys", path: "documents~/api/auth/api-keys.md" }
                 ]
             },
             {
                 title: "Guides",
                 items: [
-                    { title: "Basic Usage", path: "documents/guides/basic-usage.md" },
-                    { title: "Advanced Features", path: "documents/guides/advanced-features.md" }
+                    { title: "Basic Usage", path: "documents~/guides/basic-usage.md" },
+                    { title: "Advanced Features", path: "documents~/guides/advanced-features.md" }
                 ]
             },
             {
                 title: "Examples",
                 items: [
-                    { title: "Hello World (.dr)", path: "documents/other-page.md" }
+                    { title: "Hello World (.dr)", path: "documents~/other-page.md" }
                 ]
             },
             {
                 title: "Community",
                 items: [
-                    { title: "Community Hub", path: "documents/community/index.md" },
-                    { title: "Discussion Forums", path: "documents/community/forums.md" },
-                    { title: "Chat & Support", path: "documents/community/chat.md" },
-                    { title: "Events & Meetups", path: "documents/community/events.md" },
-                    { title: "Community Guidelines", path: "documents/community/guidelines.md" },
-                    { title: "Contributing", path: "documents/community/contributing.md" }
+                    { title: "Community Hub", path: "documents~/community/index.md" },
+                    { title: "Discussion Forums", path: "documents~/community/forums.md" },
+                    { title: "Chat & Support", path: "documents~/community/chat.md" },
+                    { title: "Events & Meetups", path: "documents~/community/events.md" },
+                    { title: "Community Guidelines", path: "documents~/community/guidelines.md" },
+                    { title: "Contributing", path: "documents~/community/contributing.md" }
                 ]
             },
             {
                 title: "Resources",
                 items: [
-                    { title: "All Resources", path: "documents/resources/index.md" }
+                    { title: "All Resources", path: "documents~/resources/index.md" }
                 ]
             },
             {
                 title: "Downloads",
                 items: [
-                    { title: "Latest Release", path: "documents/downloads/index.md" }
+                    { title: "Latest Release", path: "documents~/downloads/index.md" }
                 ]
             }
         ];

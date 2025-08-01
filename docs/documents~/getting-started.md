@@ -123,17 +123,17 @@ This documentation will guide you through:
     <div class="step-card">
         <h4>📦 Install Package</h4>
         <p>Add TCS.YoutubePlayer to your Unity project via Package Manager or manual installation.</p>
-        <a href="#documents/installation.md" class="btn-link">Installation Guide</a>
+        <a href="#documents~/installation.md" class="btn-link">Installation Guide</a>
     </div>
     <div class="step-card">
         <h4>🚀 Quick Start</h4>
         <p>Follow our quick start guide to play your first YouTube video in minutes.</p>
-        <a href="#documents/quick-start.md" class="btn-link">Quick Start</a>
+        <a href="#documents~/quick-start.md" class="btn-link">Quick Start</a>
     </div>
     <div class="step-card">
         <h4>🏗️ Learn Architecture</h4>
         <p>Understand the system architecture and core components.</p>
-        <a href="#documents/core/overview.md" class="btn-link">System Overview</a>
+        <a href="#documents~/core/overview.md" class="btn-link">System Overview</a>
     </div>
 </div>
 
@@ -143,4 +143,4 @@ This documentation will guide you through:
 - **Issues & Bug Reports**: Use GitHub Issues for bug reports and feature requests
 - **Documentation**: This comprehensive guide covers all aspects of the system
 
-Ready to get started? Let's [install the package](#documents/installation.md) and play your first YouTube video!
+Ready to get started? Let's [install the package](#documents~/installation.md) and play your first YouTube video!

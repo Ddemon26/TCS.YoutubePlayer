@@ -24,7 +24,7 @@ class UIManager {
                 dropdownItems.forEach(item => {
                     item.addEventListener('click', (e) => {
                         const href = item.getAttribute('href');
-                        if (href && href.startsWith('#documents/')) {
+                        if (href && href.startsWith('#documents~/')) {
                             e.preventDefault();
                             const path = href.substring(1);
                             this.onDropdownItemClick(path);

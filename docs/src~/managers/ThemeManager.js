@@ -14,11 +14,11 @@ class ThemeManager {
         const themeToggle = document.querySelector('.theme-toggle');
 
         if (this.currentTheme === 'dark') {
-            themeCSS.href = 'src/index-dark.css';
+            themeCSS.href = 'src~/index-dark.css';
             themeToggle.textContent = '☀️';
             document.documentElement.setAttribute('data-theme', 'dark');
         } else {
-            themeCSS.href = 'src/index.css';
+            themeCSS.href = 'src~/index.css';
             themeToggle.textContent = '🌙';
             document.documentElement.setAttribute('data-theme', 'light');
         }
