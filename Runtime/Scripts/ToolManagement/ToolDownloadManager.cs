@@ -35,12 +35,10 @@ namespace TCS.YoutubePlayer.ToolManagement {
                 string json = File.ReadAllText(versionFilePath);
                 var versionInfo = JsonConvert.DeserializeObject<Dictionary<string, ToolVersionInfo>>(json);
                 
-                if (!versionInfo.ContainsKey(toolName)) {
+                if (!versionInfo.TryGetValue( toolName, out var toolInfo )) {
                     return true; // Tool not tracked, update needed
                 }
-                
-                var toolInfo = versionInfo[toolName];
-                
+
                 // Check if tool was downloaded more than 7 days ago
                 if (DateTime.UtcNow - toolInfo.DownloadedAt > TimeSpan.FromDays(7)) {
                     Logger.Log($"[ToolDownloadManager] {toolName} is older than 7 days, considering update");
@@ -63,7 +61,7 @@ namespace TCS.YoutubePlayer.ToolManagement {
                 
                 if (File.Exists(versionFilePath)) {
                     string json = File.ReadAllText(versionFilePath);
-                    versionInfo = JsonConvert.DeserializeObject<Dictionary<string, ToolVersionInfo>>(json) ?? new();
+                    versionInfo = JsonConvert.DeserializeObject<Dictionary<string, ToolVersionInfo>>(json) ?? new Dictionary<string, ToolVersionInfo>();
                 }
                 else {
                     versionInfo = new Dictionary<string, ToolVersionInfo>();
@@ -72,7 +70,7 @@ namespace TCS.YoutubePlayer.ToolManagement {
                 versionInfo[toolName] = new ToolVersionInfo {
                     Version = version ?? "unknown",
                     FilePath = filePath,
-                    DownloadedAt = DateTime.UtcNow
+                    DownloadedAt = DateTime.UtcNow,
                 };
                 
                 string updatedJson = JsonConvert.SerializeObject(versionInfo, Formatting.Indented);
@@ -137,7 +135,10 @@ namespace TCS.YoutubePlayer.ToolManagement {
             }
             catch (Exception ex) {
                 if (File.Exists(archivePath)) {
-                    try { File.Delete(archivePath); } catch { }
+                    try { File.Delete(archivePath); }
+                    catch {
+                        // ignored
+                    }
                 }
                 throw new YtDlpException($"Failed to download and extract FFmpeg: {ex.Message}", ex);
             }
@@ -151,7 +152,7 @@ namespace TCS.YoutubePlayer.ToolManagement {
                     => Path.Combine(m_toolsDirectory, "yt-dlp", "macOS", "yt-dlp"),
                 RuntimePlatform.LinuxPlayer or RuntimePlatform.LinuxEditor
                     => Path.Combine(m_toolsDirectory, "yt-dlp", "Linux", "yt-dlp"),
-                _ => throw new NotSupportedException($"Platform {Application.platform} is not supported for yt-dlp.")
+                _ => throw new NotSupportedException($"Platform {Application.platform} is not supported for yt-dlp."),
             };
         }
 
@@ -163,7 +164,7 @@ namespace TCS.YoutubePlayer.ToolManagement {
                     => Path.Combine(m_toolsDirectory, "ffmpeg", "macOS", "bin", "ffmpeg"),
                 RuntimePlatform.LinuxPlayer or RuntimePlatform.LinuxEditor
                     => Path.Combine(m_toolsDirectory, "ffmpeg", "Linux", "bin", "ffmpeg"),
-                _ => throw new NotSupportedException($"Platform {Application.platform} is not supported for FFmpeg.")
+                _ => throw new NotSupportedException($"Platform {Application.platform} is not supported for FFmpeg."),
             };
         }
 
@@ -247,7 +248,10 @@ namespace TCS.YoutubePlayer.ToolManagement {
             }
             catch (Exception ex) {
                 if (Directory.Exists(extractPath)) {
-                    try { Directory.Delete(extractPath, true); } catch { }
+                    try { Directory.Delete(extractPath, true); }
+                    catch {
+                        // ignored
+                    }
                 }
                 throw new YtDlpException($"Failed to extract FFmpeg archive: {ex.Message}", ex);
             }

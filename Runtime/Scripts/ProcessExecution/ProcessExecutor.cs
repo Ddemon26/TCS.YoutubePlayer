@@ -38,9 +38,9 @@ namespace TCS.YoutubePlayer.ProcessExecution {
                     RedirectStandardError = true,
                     CreateNoWindow = true,
                     StandardOutputEncoding = Encoding.UTF8,
-                    StandardErrorEncoding = Encoding.UTF8
+                    StandardErrorEncoding = Encoding.UTF8,
                 },
-                EnableRaisingEvents = true
+                EnableRaisingEvents = true,
             };
 
             SetEnvironmentVariables(process);
