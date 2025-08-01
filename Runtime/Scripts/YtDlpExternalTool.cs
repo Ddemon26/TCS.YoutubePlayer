@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 
 namespace TCS.YoutubePlayer {
     public static class YtDlpExternalTool {
-        static readonly YtDlpService Service = new YtDlpService();
+        static readonly YtDlpService Service = new();
 
         public static string GetCacheTitle(string videoUrl) => 
             Service.GetCacheTitle(videoUrl);

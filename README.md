@@ -1,54 +1,129 @@
-# TCS\.YoutubePlayer
+# TCS.YoutubePlayer
 
-## Overview
+[![Unity Version](https://img.shields.io/badge/Unity-2020.3%2B-blue.svg)](https://unity3d.com/get-unity/download)
+[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![Platform](https://img.shields.io/badge/Platform-Windows-lightgrey.svg)](https://docs.microsoft.com/en-us/windows/)
 
-TCS\.YoutubePlayer is a Unity project designed to integrate YouTube video playback with both streaming and download functionalities using yt\-dlp and ffmpeg.
+A Unity package for YouTube video playback with automatic tool management, supporting both streaming and download functionalities.
 
 ## Features
 
-- Youtube video streaming
-- Youtube video download
-- Custom editor tools and runtime components
+- Direct YouTube video playback from URLs
+- Dual playback modes: streaming and download
+- Automatic external tool downloading (yt-dlp & FFmpeg)
+- Comprehensive playback controls (play, pause, seek, speed, volume)
+- Intelligent URL caching with expiration management
+- Cross-platform architecture (Windows, macOS, Linux)
+- Unity UI Toolkit integration
+- Modern async/await programming patterns
 
-## Directory Structure
+## Installation
 
-- `Editor` – Editor tools and related assembly definitions
-- `Runtime` – Core runtime scripts, materials, prefabs, and textures
-- `Runtime/Scripts/ToolManagement` – Automatic tool download and management system
+### Unity Package Manager
 
-## Requirements
+1. Open Unity Package Manager (`Window > Package Manager`)
+2. Click the `+` button and select `Add package from git URL`
+3. Enter: `https://github.com/yourusername/TCS.YoutubePlayer.git`
 
-- Unity Editor
-- Internet connection (for automatic tool downloads on first use)
+### Manual Installation
 
-## External Tools Setup
+1. Download the latest release from [Releases](https://github.com/yourusername/TCS.YoutubePlayer/releases)
+2. Extract to your Unity project's `Assets` folder
+3. Unity will automatically import the package
 
-**No manual setup required!** TCS.YoutubePlayer automatically downloads and manages external tools on first use.
+### Requirements
 
-### Automatic Downloads
-The system will automatically download:
-- **yt-dlp.exe** - Latest version from GitHub releases for Windows
-- **ffmpeg-essentials** - Essential build from gyan.dev for Windows
+- Unity Editor 2020.3 or newer
+- Internet connection for automatic tool downloads on first use
+- Windows (full support), macOS/Linux (planned)
 
-### Download Locations
-Tools are downloaded to: `Assets/StreamingAssets/TCS.YoutubePlayer.{version}/`
+## Quick Start
 
-Structure:
-- `yt-dlp/Windows/yt-dlp.exe`
-- `ffmpeg/Windows/bin/ffmpeg.exe`
+1. Add the prefab: Drag `Runtime/Prefabs/YoutubePlayer.prefab` to your scene
+2. Configure settings: Set download permissions in the Inspector
+3. Call `PlayVideo(url)` to play a YouTube video
 
-### Supported Platforms
-- **Windows**: Full support with automatic downloads
-- **macOS/Linux**: Support planned (manual installation required for now)
+```csharp
+using TCS.YoutubePlayer;
 
-### Manual Override (Advanced)
-If you need to use custom tool versions, you can:
-1. Place tools at the expected paths in the StreamingAssets directory structure
-2. Update the tool_versions.json file in the StreamingAssets directory to prevent re-downloads
-## Usage
+public class VideoController : MonoBehaviour 
+{
+    [SerializeField] YoutubePlayer youtubePlayer;
+    
+    void Start() 
+    {
+        youtubePlayer.PlayVideo("https://www.youtube.com/watch?v=dQw4w9WgXcQ");
+    }
+}
+```
 
-Add the YouTube Player prefab from `Runtime/Prefabs` to your scene and configure the settings via the Inspector.
+## Configuration
+
+### External Tools Setup
+
+The system automatically downloads and manages external tools:
+
+- **yt-dlp.exe** - Latest version from [GitHub releases](https://github.com/yt-dlp/yt-dlp/releases)
+- **FFmpeg Essentials** - From [gyan.dev](https://www.gyan.dev/ffmpeg/builds/)
+
+**Download Location**: `Assets/StreamingAssets/`
+
+```
+StreamingAssets/
+├── yt-dlp/Windows/yt-dlp.exe
+└── ffmpeg/Windows/bin/ffmpeg.exe
+```
+
+### Manual Override
+
+For custom tool versions:
+
+1. Place executables at the expected paths in StreamingAssets
+2. Create/update `tool_versions.json` to prevent re-downloads
+
+### Platform Support
+
+| Platform | Status | Notes |
+|----------|--------|-------|
+| Windows  | Full Support | Automatic downloads available |
+| macOS    | Planned | Manual installation required |
+| Linux    | Planned | Manual installation required |
+
+## Architecture
+
+```
+TCS.YoutubePlayer/
+├── Editor/                     # Unity Editor extensions
+├── Runtime/
+│   ├── Scripts/
+│   │   ├── Caching/           # URL cache management
+│   │   ├── Configuration/     # Settings and config
+│   │   ├── Exceptions/        # Custom exception types
+│   │   ├── ProcessExecution/  # External process handling
+│   │   ├── ToolManagement/    # Automatic tool downloads
+│   │   ├── UrlProcessing/     # YouTube URL parsing
+│   │   ├── VideoConversion/   # MP4 conversion
+│   │   ├── Utils/             # Logging and utilities
+│   │   └── UIToolkit/         # UI components
+│   ├── Materials/             # Video materials
+│   ├── Prefabs/              # Ready-to-use prefabs
+│   └── Textures/             # Render textures
+└── StreamingAssets/          # External tools (auto-downloaded)
+```
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/your-feature`
+3. Make your changes and commit: `git commit -m 'Add your feature'`
+4. Push to the branch: `git push origin feature/your-feature`
+5. Open a Pull Request
 
 ## License
 
-Refer to the `LICENSE` file for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Acknowledgments
+
+- [yt-dlp](https://github.com/yt-dlp/yt-dlp) - YouTube video extraction
+- [FFmpeg](https://ffmpeg.org/) - Video processing and conversion

@@ -1,4 +1,4 @@
-using System.IO;
+/*using System.IO;
 using System.Linq;
 using Newtonsoft.Json;
 using UnityEditor;
@@ -223,4 +223,4 @@ namespace TCS.YoutubePlayer.Editor {
             Debug.Log( $"[{PACKAGE_DISPLAY_NAME}] Successfully copied StreamingAssets for version {PackageVersion} to '{currentTargetVersionFolder}'." );
         }
     }
-}
+}*/
