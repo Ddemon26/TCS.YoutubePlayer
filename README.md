@@ -22,6 +22,13 @@ TCS\.YoutubePlayer is a Unity project designed to integrate YouTube video playba
 - ffmpeg
 - yt\-dlp
 
+## YT-DLP Setup
+File|Description
+:---|:---
+[yt-dlp](https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp)|Platform-independent [zipimport](https://docs.python.org/3/library/zipimport.html) binary. Needs Python (recommended for **Linux/BSD**)
+[yt-dlp.exe](https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp.exe)|Windows (Win8+) standalone x64 binary (recommended for **Windows**)
+[yt-dlp_macos](https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_macos)|Universal MacOS (10.15+) standalone executable (recommended for **MacOS**)
+
 ## Usage
 
 Add the YouTube Player prefab from `Runtime/Prefabs` to your scene and configure the settings via the Inspector.

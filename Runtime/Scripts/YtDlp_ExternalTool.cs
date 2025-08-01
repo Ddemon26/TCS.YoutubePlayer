@@ -1,4 +1,4 @@
-using System.Collections.Concurrent;
+/*using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -120,7 +120,7 @@ namespace TCS.YoutubePlayer {
                 catch (Exception ex) {
                     Logger.LogError( $"[ExternalTools] Failed to load cache from `{CacheFilePath}`: {ex.Message}. Starting with an empty cache." );
                     // Optionally, delete the corrupt cache file to prevent repeated errors:
-                    // try { File.Delete(CacheFilePath); } catch { /* Ignore delete error */ }
+                    // try { File.Delete(CacheFilePath); } catch { /* Ignore delete error #1# }
                 }
             }
             else {
@@ -748,4 +748,4 @@ namespace TCS.YoutubePlayer {
         }
         #endregion
     }
-}
+}*/
