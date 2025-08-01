@@ -1,6 +1,4 @@
-using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -10,19 +8,57 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
-using UnityEngine;
-using Debug = UnityEngine.Debug;
+using Logger = TCS.YoutubePlayer.Utils.Logger;
 
 namespace TCS.YoutubePlayer {
-    public sealed class YtDlpException : Exception {
-        public YtDlpException(string message) : base( message ) { }
+    public class YtDlpException : Exception {
+        public YtDlpException(string message) : base(message) { }
         public YtDlpException(string message, Exception innerException)
-            : base( message, innerException ) { }
+            : base(message, innerException) { }
     }
 
     public sealed class InvalidYouTubeUrlException : ArgumentException {
         public InvalidYouTubeUrlException(string message, string paramName)
-            : base( message, paramName ) { }
+            : base(message, paramName) { }
+    }
+
+    public sealed class ProcessExecutionException : YtDlpException {
+        public int ExitCode { get; }
+        public string StandardOutput { get; }
+        public string StandardError { get; }
+
+        public ProcessExecutionException(string message, int exitCode, string stdout, string stderr) 
+            : base(message) {
+            ExitCode = exitCode;
+            StandardOutput = stdout;
+            StandardError = stderr;
+        }
+    }
+
+    public sealed class ConfigurationException : YtDlpException {
+        public string ConfigPath { get; }
+
+        public ConfigurationException(string message, string configPath) : base(message) {
+            ConfigPath = configPath;
+        }
+
+        public ConfigurationException(string message, string configPath, Exception innerException) 
+            : base(message, innerException) {
+            ConfigPath = configPath;
+        }
+    }
+
+    public sealed class CacheException : YtDlpException {
+        public string CachePath { get; }
+
+        public CacheException(string message, string cachePath) : base(message) {
+            CachePath = cachePath;
+        }
+
+        public CacheException(string message, string cachePath, Exception innerException) 
+            : base(message, innerException) {
+            CachePath = cachePath;
+        }
     }
 
     public enum YtDlpUpdateResult {
@@ -32,8 +68,8 @@ namespace TCS.YoutubePlayer {
     }
 
     [Serializable] internal class YtDlpConfig {
-        [JsonProperty( "name" )] public string Name { get; set; }
-        [JsonProperty( "version" )] public string Version { get; set; }
+        [JsonProperty("name")] public string Name { get; set; }
+        [JsonProperty("version")] public string Version { get; set; }
         public string GetNameVersion() => $"{Name}.{Version}";
     }
 
@@ -56,15 +92,15 @@ namespace TCS.YoutubePlayer {
         static readonly TimeSpan DefaultCacheExpiration = TimeSpan.FromHours( 4 );
         record Mp4ConversionEntry(string OutputFilePath, DateTime CreatedAtUtc);
         static readonly ConcurrentDictionary<string, Mp4ConversionEntry> Mp4ConversionCache = new();
-        const int MP4_CACHE_LIMIT = 1;
+        const int MP4_CACHE_LIMIT = 1; // Keep only one MP4 file to conserve disk space
         static readonly string CacheFilePath = Path.Combine( Application.persistentDataPath, "yt_dlp_url_cache.json" );
         #endregion
         
         #region Cache Persistence Helpers
-        static void LoadCacheFromFile() {
+        static async Task LoadCacheFromFileAsync() {
             if ( File.Exists( CacheFilePath ) ) {
                 try {
-                    string json = File.ReadAllText( CacheFilePath );
+                    string json = await File.ReadAllTextAsync( CacheFilePath );
                     Dictionary<string, CacheEntry> loadedEntries = JsonConvert.DeserializeObject<Dictionary<string, CacheEntry>>( json );
 
                     if ( loadedEntries != null ) {
@@ -78,17 +114,17 @@ namespace TCS.YoutubePlayer {
                             }
                         }
 
-                        Debug.Log( $"[ExternalTools] Loaded {loadedCount} non-expired entries from cache file: `{CacheFilePath}`" );
+                        Logger.Log( $"[ExternalTools] Loaded {loadedCount} non-expired entries from cache file: `{CacheFilePath}`" );
                     }
                 }
                 catch (Exception ex) {
-                    Debug.LogError( $"[ExternalTools] Failed to load cache from `{CacheFilePath}`: {ex.Message}. Starting with an empty cache." );
+                    Logger.LogError( $"[ExternalTools] Failed to load cache from `{CacheFilePath}`: {ex.Message}. Starting with an empty cache." );
                     // Optionally, delete the corrupt cache file to prevent repeated errors:
                     // try { File.Delete(CacheFilePath); } catch { /* Ignore delete error */ }
                 }
             }
             else {
-                Debug.Log( $"[ExternalTools] Cache file not found at `{CacheFilePath}`. Starting with an empty cache." );
+                Logger.Log( $"[ExternalTools] Cache file not found at `{CacheFilePath}`. Starting with an empty cache." );
             }
         }
 
@@ -102,18 +138,18 @@ namespace TCS.YoutubePlayer {
                 if ( entriesToSave.Any() ) {
                     string json = JsonConvert.SerializeObject( entriesToSave, Formatting.Indented );
                     File.WriteAllText( CacheFilePath, json );
-                    Debug.Log( $"[ExternalTools] Saved {entriesToSave.Count} cache entries to: `{CacheFilePath}`" );
+                    Logger.Log( $"[ExternalTools] Saved {entriesToSave.Count} cache entries to: `{CacheFilePath}`" );
                 }
                 else {
                     // If no valid entries to save, delete the cache file if it exists
                     if ( File.Exists( CacheFilePath ) ) {
                         File.Delete( CacheFilePath );
-                        Debug.Log( $"[ExternalTools] No valid cache entries to save. Deleted existing cache file: `{CacheFilePath}`" );
+                        Logger.Log( $"[ExternalTools] No valid cache entries to save. Deleted existing cache file: `{CacheFilePath}`" );
                     }
                 }
             }
             catch (Exception ex) {
-                Debug.LogError( $"[ExternalTools] Failed to save cache to `{CacheFilePath}`: {ex.Message}" );
+                Logger.LogError( $"[ExternalTools] Failed to save cache to `{CacheFilePath}`: {ex.Message}" );
             }
         }
         // Regular expression to extract a YouTube video ID from nearly any URL pattern.
@@ -153,10 +189,11 @@ namespace TCS.YoutubePlayer {
             }
 
             if ( configPath == null ) {
-                throw new YtDlpException(
+                throw new ConfigurationException(
                     $"Configuration file not found at expected locations:\n" +
                     $"  * {assetsConfigPath}\n" +
-                    $"  * {packagesConfigPath}"
+                    $"  * {packagesConfigPath}",
+                    "config.json"
                 );
             }
 
@@ -167,14 +204,14 @@ namespace TCS.YoutubePlayer {
                                      ?? throw new YtDlpException( "Configuration file is empty or invalid JSON." ); // Assign to the readonly static field
             }
             catch (JsonException jsonEx) {
-                throw new YtDlpException( $"Failed to parse JSON in `{configPath}`.", jsonEx );
+                throw new ConfigurationException( $"Failed to parse JSON in `{configPath}`.", configPath, jsonEx );
             }
             catch (IOException ioEx) {
-                throw new YtDlpException( $"Failed to read configuration from `{configPath}`.", ioEx );
+                throw new ConfigurationException( $"Failed to read configuration from `{configPath}`.", configPath, ioEx );
             }
 
-            // Load cache from disk
-            LoadCacheFromFile();
+            // Load cache from disk - run synchronously in static constructor
+            _ = Task.Run(LoadCacheFromFileAsync);
 
             #if !UNITY_EDITOR
             // Subscribe to save cache on quit
@@ -269,15 +306,16 @@ namespace TCS.YoutubePlayer {
                 );
             }
 
-            var cookieArg = $" --cookies-from-browser \"{BROWSER_FOR_COOKIES}\"";
-            string arguments = string.Format( YT_DLP_TITLE_ARGS_FORMAT, trimUrl ) + cookieArg;
+            var cookieArg = $" --cookies-from-browser \"{SanitizeForShell(BROWSER_FOR_COOKIES)}\"";
+            string arguments = string.Format(YT_DLP_TITLE_ARGS_FORMAT, SanitizeForShell(trimUrl)) + cookieArg;
 
             (int exitCode, string stdout, string stderr) = await RunProcessAsync( YtDlpPath, arguments, cancellationToken )
                 .ConfigureAwait( false );
 
             if ( exitCode != 0 ) {
-                 throw new YtDlpException(
-                    $"yt-dlp failed with exit code {exitCode} for URL '{videoUrl}'.\nStderr: {stderr}"
+                 throw new ProcessExecutionException(
+                    $"yt-dlp failed with exit code {exitCode} for URL '{videoUrl}'.",
+                    exitCode, stdout, stderr
                 );
             }
             
@@ -308,64 +346,71 @@ namespace TCS.YoutubePlayer {
 
         public static async Task<string> ConvertToMp4Async(string hlsUrl, CancellationToken cancellationToken) {
             if ( string.IsNullOrEmpty( hlsUrl ) ) {
-                Debug.LogError( "[ExternalTools] HLS URL is null or empty" );
+                Logger.LogError( "[ExternalTools] HLS URL is null or empty" );
                 return null;
             }
 
             // Check if the file is already cached
             if ( Mp4ConversionCache.TryGetValue( hlsUrl, out var existingEntry ) ) {
-                Debug.Log( $"[ExternalTools] HLS URL found in cache. Returning existing file: {existingEntry.OutputFilePath}" );
+                Logger.Log( $"[ExternalTools] HLS URL found in cache. Returning existing file: {existingEntry.OutputFilePath}" );
                 return existingEntry.OutputFilePath;
             }
 
-            // Ensure the directory exists
-            Directory.CreateDirectory( Path.Combine( Application.persistentDataPath, "Streaming" ) );
-            // Create a unique filename from the HLS URL
-            string uniqueFileName = SanitizeUrlToFileName( hlsUrl ) + ".mp4";
-            string outputFilePath = Path.Combine( Application.persistentDataPath, "Streaming", uniqueFileName );
-            // If the cache is full, remove the oldest entry
-            if ( Mp4ConversionCache.Count >= MP4_CACHE_LIMIT ) {
-                // Order by creation time to find the oldest
-                KeyValuePair<string, Mp4ConversionEntry> oldestKeyValue = Mp4ConversionCache.OrderBy( kvp => kvp.Value.CreatedAtUtc ).FirstOrDefault();
-                // Check if the valid oldest entry was found (cache might be empty)
-                if ( !string.IsNullOrEmpty( oldestKeyValue.Key ) ) {
-                    // Or check if KeyValuePair is not default
-                    if ( Mp4ConversionCache.TryRemove( oldestKeyValue.Key, out var removedEntry ) ) {
-                        try {
-                            if ( File.Exists( removedEntry.OutputFilePath ) ) {
-                                File.Delete( removedEntry.OutputFilePath );
-                                Debug.Log( $"[ExternalTools] Cache full. Removed oldest entry: {oldestKeyValue.Key} and its file: {removedEntry.OutputFilePath}" );
-                            }
-                            else {
-                                Debug.Log( $"[ExternalTools] Cache full. Removed oldest entry: {oldestKeyValue.Key}. File not found: {removedEntry.OutputFilePath}" );
-                            }
-                        }
-                        catch (IOException ex) {
-                            Debug.LogError( $"[ExternalTools] Error deleting cached file {removedEntry.OutputFilePath}: {ex.Message}" );
-                            // Decide if you want to re-throw or just log
-                        }
-                    }
-                }
-            }
-
-            // Conversion logic
+            string outputFilePath = PrepareOutputDirectory(hlsUrl);
+            await CleanupOldCacheEntriesAsync();
+            
             try {
-                // Delete the file if it exists (from a previous failed attempt)
-                if ( File.Exists( outputFilePath ) ) {
-                    File.Delete( outputFilePath );
-                }
-
-                // Run the ffmpeg process
-                await RunProcessAsync( $"{FFmpegPath}", $"-i \"{hlsUrl}\" -c copy \"{outputFilePath}\"", cancellationToken );
-                Debug.Log( $"[ExternalTools] HLS URL converted to MP4 at {outputFilePath}" );
-                // Add the output file to the cache
-                Mp4ConversionCache[hlsUrl] = new Mp4ConversionEntry( outputFilePath, DateTime.UtcNow );
+                await ConvertHlsToMp4Async(hlsUrl, outputFilePath, cancellationToken);
+                AddToMp4Cache(hlsUrl, outputFilePath);
                 return outputFilePath;
             }
             catch (YtDlpException ex) {
-                Debug.LogError( $"[ExternalTools] Error converting HLS URL to MP4: {ex.Message}" );
+                Logger.LogError( $"[ExternalTools] Error converting HLS URL to MP4: {ex.Message}" );
                 throw;
             }
+        }
+
+        static string PrepareOutputDirectory(string hlsUrl) {
+            Directory.CreateDirectory( Path.Combine( Application.persistentDataPath, "Streaming" ) );
+            string uniqueFileName = SanitizeUrlToFileName( hlsUrl ) + ".mp4";
+            return Path.Combine( Application.persistentDataPath, "Streaming", uniqueFileName );
+        }
+
+        static Task CleanupOldCacheEntriesAsync() {
+            if ( Mp4ConversionCache.Count < MP4_CACHE_LIMIT ) return Task.CompletedTask;
+
+            var oldestKeyValue = Mp4ConversionCache.OrderBy( kvp => kvp.Value.CreatedAtUtc ).FirstOrDefault();
+            if ( string.IsNullOrEmpty( oldestKeyValue.Key ) ) return Task.CompletedTask;
+
+            if ( Mp4ConversionCache.TryRemove( oldestKeyValue.Key, out var removedEntry ) ) {
+                try {
+                    if ( File.Exists( removedEntry.OutputFilePath ) ) {
+                        File.Delete( removedEntry.OutputFilePath );
+                        Logger.Log( $"[ExternalTools] Cache full. Removed oldest entry: {oldestKeyValue.Key} and its file: {removedEntry.OutputFilePath}" );
+                    }
+                    else {
+                        Logger.Log( $"[ExternalTools] Cache full. Removed oldest entry: {oldestKeyValue.Key}. File not found: {removedEntry.OutputFilePath}" );
+                    }
+                }
+                catch (IOException ex) {
+                    Logger.LogError( $"[ExternalTools] Error deleting cached file {removedEntry.OutputFilePath}: {ex.Message}" );
+                }
+            }
+
+            return Task.CompletedTask;
+        }
+
+        static async Task ConvertHlsToMp4Async(string hlsUrl, string outputFilePath, CancellationToken cancellationToken) {
+            if ( File.Exists( outputFilePath ) ) {
+                File.Delete( outputFilePath );
+            }
+
+            await RunProcessAsync( $"{FFmpegPath}", $"-i \"{SanitizeForShell(hlsUrl)}\" -c copy \"{SanitizeForShell(outputFilePath)}\"", cancellationToken );
+            Logger.Log( $"[ExternalTools] HLS URL converted to MP4 at {outputFilePath}" );
+        }
+
+        static void AddToMp4Cache(string hlsUrl, string outputFilePath) {
+            Mp4ConversionCache[hlsUrl] = new Mp4ConversionEntry( outputFilePath, DateTime.UtcNow );
         }
         static string SanitizeUrlToFileName(string url) {
             using var sha256 = SHA256.Create();
@@ -376,7 +421,7 @@ namespace TCS.YoutubePlayer {
 
         #region Public API: Version Management
         static async Task<string> GetCurrentYtDlpVersionAsync(CancellationToken cancellationToken) {
-            Debug.Log( "[ExternalTools] Checking yt-dlp version..." );
+            Logger.Log( "[ExternalTools] Checking yt-dlp version..." );
 
             string ytDlpExecutablePath = YtDlpPath;
             if ( string.IsNullOrEmpty( ytDlpExecutablePath ) || !File.Exists( ytDlpExecutablePath ) ) {
@@ -401,12 +446,12 @@ namespace TCS.YoutubePlayer {
             string version = stdout
                 .Split( new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries )[0]
                 .Trim();
-            Debug.Log( $"[ExternalTools] Current yt-dlp version: {version}" );
+            Logger.Log( $"[ExternalTools] Current yt-dlp version: {version}" );
             return version;
         }
 
         static async Task<YtDlpUpdateResult> UpdateYtDlpAsync(CancellationToken cancellationToken) {
-            Debug.Log( "[ExternalTools] Attempting to update yt-dlp..." );
+            Logger.Log( "[ExternalTools] Attempting to update yt-dlp..." );
 
             string ytDlpExecutablePath = YtDlpPath;
             if ( string.IsNullOrEmpty( ytDlpExecutablePath ) || !File.Exists( ytDlpExecutablePath ) ) {
@@ -428,11 +473,11 @@ namespace TCS.YoutubePlayer {
             // If yt-dlp exits non-zero but outputs "up to date", treat as AlreadyUpToDate
             if ( exitCode != 0 ) {
                 if ( ContainsUpToDateMessage( stdout ) || ContainsUpToDateMessage( stderr ) ) {
-                    Debug.Log( "[ExternalTools] yt-dlp is already up to date." );
+                    Logger.Log( "[ExternalTools] yt-dlp is already up to date." );
                     return YtDlpUpdateResult.AlreadyUpToDate;
                 }
 
-                Debug.LogError(
+                Logger.LogError(
                     $"[ExternalTools] yt-dlp --update failed (exit code {exitCode}).\n" +
                     $"Stdout: {stdout}\nStderr: {stderr}"
                 );
@@ -442,22 +487,22 @@ namespace TCS.YoutubePlayer {
             // If exit code == 0, check if it explicitly reported an update
             if ( stdout.Contains( "Updated yt-dlp to" ) ||
                  stdout.Contains( "Successfully updated" ) ) {
-                Debug.Log( $"[ExternalTools] yt-dlp updated successfully: {stdout}" );
+                Logger.Log( $"[ExternalTools] yt-dlp updated successfully: {stdout}" );
                 return YtDlpUpdateResult.Updated;
             }
 
             // If stdout/stderr contains "up to date", treat accordingly
             if ( ContainsUpToDateMessage( stdout ) || ContainsUpToDateMessage( stderr ) ) {
-                Debug.Log( "[ExternalTools] yt-dlp is already up to date." );
+                Logger.Log( "[ExternalTools] yt-dlp is already up to date." );
                 return YtDlpUpdateResult.AlreadyUpToDate;
             }
 
             // Otherwise, assume AlreadyUpToDate if no explicit failure banner
             if ( !string.IsNullOrWhiteSpace( stderr ) ) {
-                Debug.LogWarning( $"[ExternalTools] yt-dlp --update exited 0 but had stderr:\n{stderr}" );
+                Logger.LogWarning( $"[ExternalTools] yt-dlp --update exited 0 but had stderr:\n{stderr}" );
             }
 
-            Debug.LogWarning(
+            Logger.LogWarning(
                 $"[ExternalTools] yt-dlp --update finished with exit code 0 but did not explicitly report an update. " +
                 "Assuming it is already up to date.\n" +
                 $"Stdout: {stdout}"
@@ -470,13 +515,13 @@ namespace TCS.YoutubePlayer {
             var oldVersion = "unknown";
             try {
                 oldVersion = await GetCurrentYtDlpVersionAsync( cancellationToken ).ConfigureAwait( false );
-                Debug.Log( $"[ExternalTools] Current yt-dlp version (before update): {oldVersion}" );
+                Logger.Log( $"[ExternalTools] Current yt-dlp version (before update): {oldVersion}" );
             }
             catch (YtDlpException ex) {
-                Debug.LogWarning( $"[ExternalTools] Could not determine current yt-dlp version: {ex.Message}" );
+                Logger.LogWarning( $"[ExternalTools] Could not determine current yt-dlp version: {ex.Message}" );
             }
             catch (OperationCanceledException) {
-                Debug.Log( "[ExternalTools] Version check before update was canceled." );
+                Logger.Log( "[ExternalTools] Version check before update was canceled." );
                 throw;
             }
 
@@ -487,42 +532,42 @@ namespace TCS.YoutubePlayer {
                 updateResult = await UpdateYtDlpAsync( cancellationToken ).ConfigureAwait( false );
             }
             catch (YtDlpException ex) {
-                Debug.LogError( $"[ExternalTools] yt-dlp update threw an exception: {ex.Message}" );
+                Logger.LogError( $"[ExternalTools] yt-dlp update threw an exception: {ex.Message}" );
                 updateResult = YtDlpUpdateResult.Failed;
             }
             catch (OperationCanceledException) {
-                Debug.Log( "[ExternalTools] Update process was canceled." );
+                Logger.Log( "[ExternalTools] Update process was canceled." );
                 throw;
             }
 
             switch (updateResult) {
                 case YtDlpUpdateResult.Updated:
-                    Debug.Log( "[ExternalTools] yt-dlp was updated." );
+                    Logger.Log( "[ExternalTools] yt-dlp was updated." );
                     try {
                         string newVersion = await GetCurrentYtDlpVersionAsync( cancellationToken )
                             .ConfigureAwait( false );
-                        Debug.Log( $"[ExternalTools] New yt-dlp version (after update): {newVersion}" );
+                        Logger.Log( $"[ExternalTools] New yt-dlp version (after update): {newVersion}" );
                         if ( oldVersion != "unknown" && oldVersion == newVersion ) {
-                            Debug.LogWarning(
+                            Logger.LogWarning(
                                 $"[ExternalTools] yt-dlp reported an update, but version remains {newVersion} (same as {oldVersion})."
                             );
                         }
                     }
                     catch (YtDlpException ex) {
-                        Debug.LogWarning( $"[ExternalTools] Could not get version after update: {ex.Message}" );
+                        Logger.LogWarning( $"[ExternalTools] Could not get version after update: {ex.Message}" );
                     }
                     catch (OperationCanceledException) {
-                        Debug.Log( "[ExternalTools] Version check after update was canceled." );
+                        Logger.Log( "[ExternalTools] Version check after update was canceled." );
                     }
 
                     break;
 
                 case YtDlpUpdateResult.AlreadyUpToDate:
-                    Debug.Log( $"[ExternalTools] yt-dlp is already at the latest version (was {oldVersion})." );
+                    Logger.Log( $"[ExternalTools] yt-dlp is already at the latest version (was {oldVersion})." );
                     break;
 
                 case YtDlpUpdateResult.Failed:
-                    Debug.LogError( $"[ExternalTools] yt-dlp update failed. Version likely remains: {oldVersion}" );
+                    Logger.LogError( $"[ExternalTools] yt-dlp update failed. Version likely remains: {oldVersion}" );
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -577,7 +622,7 @@ namespace TCS.YoutubePlayer {
                         try {
                             if ( !process.HasExited ) {
                                 process.Kill();
-                                Debug.LogWarning(
+                                Logger.LogWarning(
                                     $"[ExternalTools] Killed process {Path.GetFileName( fileName )} due to cancellation."
                                 );
                             }
@@ -586,7 +631,7 @@ namespace TCS.YoutubePlayer {
                             // Already exited
                         }
                         catch (Exception ex) {
-                            Debug.LogError( $"[ExternalTools] Exception trying to kill process: {ex.Message}" );
+                            Logger.LogError( $"[ExternalTools] Exception trying to kill process: {ex.Message}" );
                         }
 
                         tcs.TrySetCanceled( cancellationToken );
@@ -622,13 +667,13 @@ namespace TCS.YoutubePlayer {
                     );
                 }
                 else {
-                    Debug.Log( $"[ExternalTools] Started process: {fileName} {arguments} (PID: {process.Id})" );
+                    Logger.Log( $"[ExternalTools] Started process: {fileName} {arguments} (PID: {process.Id})" );
                     process.BeginOutputReadLine();
                     process.BeginErrorReadLine();
                 }
             }
             catch (Exception ex) {
-                Debug.LogError( $"[ExternalTools] Exception launching '{fileName} {arguments}': {ex}" );
+                Logger.LogError( $"[ExternalTools] Exception launching '{fileName} {arguments}': {ex}" );
                 tcs.TrySetException(
                     new YtDlpException(
                         $"Failed to start process '{Path.GetFileName( fileName )}'. Exception: {ex.Message}", ex
@@ -642,6 +687,23 @@ namespace TCS.YoutubePlayer {
 
         #region Private Helpers
         // ======== Private Helpers ========
+        
+        static string SanitizeForShell(string input) {
+            if (string.IsNullOrEmpty(input)) return string.Empty;
+            
+            // Escape dangerous characters for shell execution
+            return input.Replace("\"", "\\\"")
+                       .Replace("'", "\\'")
+                       .Replace("`", "\\`")
+                       .Replace("$", "\\$")
+                       .Replace("&", "\\&")
+                       .Replace("|", "\\|")
+                       .Replace(";", "\\;")
+                       .Replace("(", "\\(")
+                       .Replace(")", "\\)")
+                       .Replace("<", "\\<")
+                       .Replace(">", "\\>");
+        }
         static DateTime? ParseExpiryFromUrl(string url) {
             try {
                 var match = Regex.Match( url, @"[?&]expire=(\d+)" );
