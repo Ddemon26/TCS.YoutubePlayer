@@ -89,28 +89,6 @@ For custom tool versions:
 | macOS    | Planned | Manual installation required |
 | Linux    | Planned | Manual installation required |
 
-## Architecture
-
-```
-TCS.YoutubePlayer/
-├── Editor/                     # Unity Editor extensions
-├── Runtime/
-│   ├── Scripts/
-│   │   ├── Caching/           # URL cache management
-│   │   ├── Configuration/     # Settings and config
-│   │   ├── Exceptions/        # Custom exception types
-│   │   ├── ProcessExecution/  # External process handling
-│   │   ├── ToolManagement/    # Automatic tool downloads
-│   │   ├── UrlProcessing/     # YouTube URL parsing
-│   │   ├── VideoConversion/   # MP4 conversion
-│   │   ├── Utils/             # Logging and utilities
-│   │   └── UIToolkit/         # UI components
-│   ├── Materials/             # Video materials
-│   ├── Prefabs/              # Ready-to-use prefabs
-│   └── Textures/             # Render textures
-└── StreamingAssets/          # External tools (auto-downloaded)
-```
-
 ## Contributing
 
 1. Fork the repository
