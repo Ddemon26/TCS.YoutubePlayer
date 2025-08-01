@@ -1,0 +1,51 @@
+<ui:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="True">
+    <Style src="project://database/Assets/TCS.YoutubePlayer/Runtime/UIToolkit/YoutubePlayer.uss?fileID=7433441132597879392&amp;guid=34ce5cba2f4d15443a3cb8944addf720&amp;type=3#YoutubePlayer" />
+    <ui:VisualElement name="Root" style="flex-grow: 1; align-items: center; justify-content: center;">
+        <ui:VisualElement name="Panel" style="flex-grow: 0; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; background-color: rgba(60, 60, 60, 0.75); flex-shrink: 0; width: 30%; height: auto; min-width: initial; min-height: auto; max-width: initial; max-height: 50%; overflow: hidden; border-top-left-radius: 8px; border-top-right-radius: 8px; border-bottom-right-radius: 8px; border-bottom-left-radius: 8px;">
+            <ui:VisualElement name="HeaderContainer" style="flex-grow: 0; flex-shrink: 0;">
+                <ui:Label text="Youtube Player" name="Header" style="margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0; -unity-text-align: middle-center; -unity-font-style: bold; font-size: 35px;" />
+            </ui:VisualElement>
+            <ui:VisualElement name="SearchContainer" style="flex-grow: 0; flex-direction: row; flex-shrink: 0;">
+                <ui:TextField name="UrlField" style="flex-grow: 1;" />
+                <ui:Button text="Search" name="SearchButton" />
+            </ui:VisualElement>
+            <ui:VisualElement name="CurrentTitleContainer" style="flex-grow: 0; flex-direction: row; flex-shrink: 0; -unity-font-style: bold; max-width: 100%; align-self: center;">
+                <ui:Label text="Currently Playing:" name="CurrentPlaying" />
+                <ui:Label text="Nothing" name="Context" style="flex-grow: 0; flex-shrink: 1; text-overflow: ellipsis; overflow: hidden;" />
+            </ui:VisualElement>
+            <ui:VisualElement name="PlayerQueueRoot" style="flex-grow: 0; flex-shrink: 1; padding-top: 20px; padding-right: 30px; padding-bottom: 20px; padding-left: 30px; display: none;">
+                <ui:VisualElement name="PlayerQueueContainer" style="flex-grow: 0; flex-shrink: 1; overflow: hidden;">
+                    <ui:VisualElement name="PlayerQueueHeaderContainer" style="flex-grow: 0; flex-shrink: 0;">
+                        <ui:Label text="Player Queue" name="PlayerQueueHeader" style="-unity-text-align: middle-center; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0; font-size: 20px; -unity-font-style: bold;" />
+                    </ui:VisualElement>
+                    <ui:ScrollView name="PlayerQueueScrollView" style="flex-grow: 0; flex-shrink: 1; border-top-width: 1px; border-right-width: 1px; border-bottom-width: 1px; border-left-width: 1px; border-left-color: rgb(0, 0, 0); border-right-color: rgb(0, 0, 0); border-top-color: rgb(0, 0, 0); border-bottom-color: rgb(0, 0, 0); padding-left: 0; padding-right: 0; padding-top: 0; padding-bottom: 0; margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0;">
+                        <ui:Label text="Label" />
+                        <ui:Label text="Label" />
+                        <ui:Label text="Label" />
+                        <ui:Label text="Label" />
+                        <ui:Label text="Label" />
+                        <ui:Label text="Label" />
+                        <ui:Label text="Label" />
+                        <ui:Label text="Label" />
+                        <ui:Label text="Label" />
+                        <ui:Label text="Label" />
+                        <ui:Label text="Label" />
+                        <ui:Label text="Label" />
+                        <ui:Label text="Label" />
+                    </ui:ScrollView>
+                </ui:VisualElement>
+            </ui:VisualElement>
+            <ui:VisualElement name="ButtonStripContainer" style="flex-grow: 0; flex-direction: row; flex-shrink: 0; justify-content: center; -unity-font-style: bold;">
+                <ui:Button text="▶" name="PlayButton" />
+                <ui:Button text="||" name="PauseButton" />
+                <ui:Button text="|◀" name="SkipBackButton" enabled="true" style="display: none;" />
+                <ui:Button text="◀◀" name="PrevButton" />
+                <ui:Button text="▶▶" name="NextButton" />
+                <ui:Button text="▶|" name="SkipForwardButton" style="display: none;" />
+            </ui:VisualElement>
+            <ui:VisualElement name="ProgressContainer" style="flex-grow: 0; flex-shrink: 0; margin-left: 100px; margin-right: 100px;">
+                <ui:ProgressBar value="22" name="VideoProgress" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

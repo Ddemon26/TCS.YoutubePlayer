@@ -1,0 +1,14 @@
+{
+    "name": "TCS.YoutubePlayer",
+    "rootNamespace": "",
+    "references": ["GUID:3ef187033d06e9b4784c7704ef8d1481"],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

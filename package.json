@@ -1,0 +1,14 @@
+{
+  "name": "tcs.youtubeplayer",
+  "displayName": "TCS-YoutubePlayer",
+  "description": "A simple Youtube player for Tent City Studio",
+  "version": "0.0.1",
+  "keywords": ["TCS", "Damon's Mod"],
+  "category": "Tent City Studio",
+  "dependencies": {},
+  "author": {
+    "name": "Damon Fedorick",
+    "url": "https://github.com/Ddemon26/TCS-YoutubePlayer"
+  },
+  "documentationUrl": "https://github.com/Ddemon26/TCS-YoutubePlayer/blob/main/README.md"
+}

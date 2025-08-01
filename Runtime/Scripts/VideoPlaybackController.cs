@@ -1,0 +1,94 @@
+﻿using System.Collections;
+using UnityEngine;
+using UnityEngine.Video;
+
+namespace TestYouTube {
+    [RequireComponent( typeof(VideoPlayer) )]
+    [DisallowMultipleComponent]
+    public class VideoPlaybackController : MonoBehaviour {
+        [Tooltip( "Automatically start playing once the VideoPlayer is prepared." )]
+        public bool m_autoPlayOnPrepare = true;
+
+        VideoPlayer m_player;
+        AudioSource m_audioSrc; // only present if you add one yourself
+
+        void Awake() {
+            m_player = GetComponent<VideoPlayer>();
+            m_audioSrc = GetComponent<AudioSource>(); // null unless you routed audio to a source
+            m_player.loopPointReached += _ => OnLoopReached();
+        }
+
+        void Start() {
+            if ( m_player.isPrepared ) OnPrepared();
+            else m_player.prepareCompleted += _ => OnPrepared();
+        }
+
+        /* ─────────────────── PUBLIC API ─────────────────── */
+
+        public void TogglePlayPause() {
+            if ( !m_player.isPrepared ) return;
+            if ( m_player.isPlaying ) m_player.Pause();
+            else m_player.Play();
+        }
+
+        public void StopPlayback() {
+            if ( !m_player.isPrepared ) return;
+            m_player.Stop();
+        }
+
+        public void SeekAbsolute(float seconds) {
+            if ( !m_player.canSetTime ) return;
+            StartCoroutine( SeekRoutine( seconds ) );
+        }
+
+        public void SeekRelative(float deltaSeconds) => SeekAbsolute( (float)m_player.time + deltaSeconds );
+
+        public void SkipForward(float seconds = 10f) => SeekRelative( +seconds );
+        public void SkipBackward(float seconds = 10f) => SeekRelative( -seconds );
+
+        public void SetPlaybackSpeed(float speed = 1f) => m_player.playbackSpeed = speed;
+
+        public void HalfSpeed() => SetPlaybackSpeed( 0.5f );
+        public void DoubleSpeed() => SetPlaybackSpeed( 2f );
+
+        public void MuteToggle() {
+            if ( m_audioSrc ) m_audioSrc.mute = !m_audioSrc.mute;
+            else m_player.SetDirectAudioMute( 0, !m_player.GetDirectAudioMute( 0 ) );
+        }
+
+        /// <summary>Set volume (0–1). If you've routed audio to an AudioSource,
+        /// this adjusts that; otherwise it changes the first direct-audio track.</summary>
+        public void SetVolume(float value) {
+            value = Mathf.Clamp01( value );
+            if ( m_audioSrc ) m_audioSrc.volume = value;
+            else m_player.SetDirectAudioVolume( 0, value );
+        }
+
+        /* ───────────────── INTERNAL ───────────────── */
+
+        IEnumerator SeekRoutine(float toTime) {
+            if ( !m_player.isPrepared ) yield break;
+
+            m_player.time = Mathf.Clamp( toTime, 0f, (float)m_player.length );
+
+            // For streamed videos we pause + prepare, so Unity buffers before replaying.
+            m_player.Pause();
+            m_player.Prepare();
+            while (!m_player.isPrepared) {
+                yield return null;
+            }
+
+            m_player.Play();
+        }
+
+        void OnPrepared() {
+            if ( m_autoPlayOnPrepare ) m_player.Play();
+        }
+
+        void OnLoopReached() {
+            // Default: stop at end. Uncomment to loop:
+            // player.time = 0;
+            // player.Play();
+        }
+    }
+}
