@@ -1,4 +1,3 @@
-using System;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
@@ -9,10 +8,10 @@ using Logger = TCS.YoutubePlayer.Utils.Logger;
 
 namespace TCS.YoutubePlayer.ProcessExecution {
     public class ProcessExecutor {
-        private readonly string _ffmpegPath;
+        readonly string m_ffmpegPath;
 
         public ProcessExecutor(string ffmpegPath) {
-            _ffmpegPath = ffmpegPath;
+            m_ffmpegPath = ffmpegPath;
         }
 
         public Task<ProcessResult> RunProcessAsync(
@@ -112,9 +111,9 @@ namespace TCS.YoutubePlayer.ProcessExecution {
             return tcs.Task;
         }
 
-        private void SetEnvironmentVariables(Process process) {
+        void SetEnvironmentVariables(Process process) {
             #if UNITY_2020_1_OR_NEWER
-            process.StartInfo.Environment["FFMPEG_LOCATION"] = _ffmpegPath;
+            process.StartInfo.Environment["FFMPEG_LOCATION"] = m_ffmpegPath;
             #else
             process.StartInfo.EnvironmentVariables["FFMPEG_LOCATION"] = _ffmpegPath;
             #endif

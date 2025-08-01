@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Concurrent;
 using System.IO;
 using System.Linq;
@@ -6,7 +5,6 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using UnityEngine;
 using TCS.YoutubePlayer.Exceptions;
 using TCS.YoutubePlayer.ProcessExecution;
 using TCS.YoutubePlayer.UrlProcessing;
@@ -14,15 +12,15 @@ using Logger = TCS.YoutubePlayer.Utils.Logger;
 
 namespace TCS.YoutubePlayer.VideoConversion {
     public class Mp4Converter {
-        private readonly ProcessExecutor _processExecutor;
-        private readonly YouTubeUrlProcessor _urlProcessor;
-        private readonly ConcurrentDictionary<string, Mp4ConversionEntry> _mp4ConversionCache = new();
-        
-        private const int MP4_CACHE_LIMIT = 1;
+        readonly ProcessExecutor m_processExecutor;
+        readonly YouTubeUrlProcessor m_urlProcessor;
+        readonly ConcurrentDictionary<string, Mp4ConversionEntry> m_mp4ConversionCache = new();
+
+        const int MP4_CACHE_LIMIT = 1;
 
         public Mp4Converter(ProcessExecutor processExecutor, YouTubeUrlProcessor urlProcessor) {
-            _processExecutor = processExecutor ?? throw new ArgumentNullException(nameof(processExecutor));
-            _urlProcessor = urlProcessor ?? throw new ArgumentNullException(nameof(urlProcessor));
+            m_processExecutor = processExecutor ?? throw new ArgumentNullException(nameof(processExecutor));
+            m_urlProcessor = urlProcessor ?? throw new ArgumentNullException(nameof(urlProcessor));
         }
 
         public async Task<string> ConvertToMp4Async(string hlsUrl, CancellationToken cancellationToken) {
@@ -31,7 +29,7 @@ namespace TCS.YoutubePlayer.VideoConversion {
                 return null;
             }
 
-            if (_mp4ConversionCache.TryGetValue(hlsUrl, out var existingEntry)) {
+            if (m_mp4ConversionCache.TryGetValue(hlsUrl, out var existingEntry)) {
                 Logger.Log($"[Mp4Converter] HLS URL found in cache. Returning existing file: {existingEntry.OutputFilePath}");
                 return existingEntry.OutputFilePath;
             }
@@ -50,19 +48,19 @@ namespace TCS.YoutubePlayer.VideoConversion {
             }
         }
 
-        private string PrepareOutputDirectory(string hlsUrl) {
+        string PrepareOutputDirectory(string hlsUrl) {
             Directory.CreateDirectory(Path.Combine(Application.persistentDataPath, "Streaming"));
             string uniqueFileName = SanitizeUrlToFileName(hlsUrl) + ".mp4";
             return Path.Combine(Application.persistentDataPath, "Streaming", uniqueFileName);
         }
 
-        private Task CleanupOldCacheEntriesAsync() {
-            if (_mp4ConversionCache.Count < MP4_CACHE_LIMIT) return Task.CompletedTask;
+        Task CleanupOldCacheEntriesAsync() {
+            if (m_mp4ConversionCache.Count < MP4_CACHE_LIMIT) return Task.CompletedTask;
 
-            var oldestKeyValue = _mp4ConversionCache.OrderBy(kvp => kvp.Value.CreatedAtUtc).FirstOrDefault();
+            KeyValuePair<string, Mp4ConversionEntry> oldestKeyValue = m_mp4ConversionCache.OrderBy(kvp => kvp.Value.CreatedAtUtc).FirstOrDefault();
             if (string.IsNullOrEmpty(oldestKeyValue.Key)) return Task.CompletedTask;
 
-            if (_mp4ConversionCache.TryRemove(oldestKeyValue.Key, out var removedEntry)) {
+            if (m_mp4ConversionCache.TryRemove(oldestKeyValue.Key, out var removedEntry)) {
                 try {
                     if (File.Exists(removedEntry.OutputFilePath)) {
                         File.Delete(removedEntry.OutputFilePath);
@@ -80,15 +78,15 @@ namespace TCS.YoutubePlayer.VideoConversion {
             return Task.CompletedTask;
         }
 
-        private async Task ConvertHlsToMp4Async(string hlsUrl, string outputFilePath, CancellationToken cancellationToken) {
+        async Task ConvertHlsToMp4Async(string hlsUrl, string outputFilePath, CancellationToken cancellationToken) {
             if (File.Exists(outputFilePath)) {
                 File.Delete(outputFilePath);
             }
 
-            string sanitizedHlsUrl = _urlProcessor.SanitizeForShell(hlsUrl);
-            string sanitizedOutputPath = _urlProcessor.SanitizeForShell(outputFilePath);
+            string sanitizedHlsUrl = m_urlProcessor.SanitizeForShell(hlsUrl);
+            string sanitizedOutputPath = m_urlProcessor.SanitizeForShell(outputFilePath);
             
-            var result = await _processExecutor.RunProcessAsync(
+            var result = await m_processExecutor.RunProcessAsync(
                 "ffmpeg", 
                 $"-i \"{sanitizedHlsUrl}\" -c copy \"{sanitizedOutputPath}\"", 
                 cancellationToken
@@ -106,11 +104,11 @@ namespace TCS.YoutubePlayer.VideoConversion {
             Logger.Log($"[Mp4Converter] HLS URL converted to MP4 at {outputFilePath}");
         }
 
-        private void AddToMp4Cache(string hlsUrl, string outputFilePath) {
-            _mp4ConversionCache[hlsUrl] = new Mp4ConversionEntry(outputFilePath, DateTime.UtcNow);
+        void AddToMp4Cache(string hlsUrl, string outputFilePath) {
+            m_mp4ConversionCache[hlsUrl] = new Mp4ConversionEntry(outputFilePath, DateTime.UtcNow);
         }
 
-        private static string SanitizeUrlToFileName(string url) {
+        static string SanitizeUrlToFileName(string url) {
             using var sha256 = SHA256.Create();
             byte[] hashBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(url));
             return BitConverter.ToString(hashBytes).Replace("-", "").ToLowerInvariant();

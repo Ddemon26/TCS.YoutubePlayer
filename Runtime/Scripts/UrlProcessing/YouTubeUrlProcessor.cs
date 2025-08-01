@@ -1,10 +1,9 @@
-using System;
 using System.Text.RegularExpressions;
 using TCS.YoutubePlayer.Exceptions;
 
 namespace TCS.YoutubePlayer.UrlProcessing {
     public class YouTubeUrlProcessor {
-        private readonly Regex _youTubeIdRegex = new(
+        readonly Regex m_youTubeIdRegex = new(
             @"^.*(?:(?:youtu\.be\/|v\/|vi\/|u\/\w\/|embed\/|e\/)|(?:(?:watch)?\?v(?:i)?=|\&v(?:i)?=))([^#\&\?]{11}).*",
             RegexOptions.Compiled | RegexOptions.IgnoreCase
         );
@@ -33,7 +32,7 @@ namespace TCS.YoutubePlayer.UrlProcessing {
             if (string.IsNullOrWhiteSpace(url))
                 return null;
 
-            var match = _youTubeIdRegex.Match(url);
+            var match = m_youTubeIdRegex.Match(url);
             return (match.Success && match.Groups[1].Value.Length == 11)
                 ? match.Groups[1].Value
                 : null;

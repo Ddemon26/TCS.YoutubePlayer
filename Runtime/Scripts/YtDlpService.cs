@@ -1,5 +1,3 @@
-using System;
-using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using TCS.YoutubePlayer.Caching;
@@ -18,32 +16,32 @@ namespace TCS.YoutubePlayer {
     }
 
     public class YtDlpService {
-        private const string YT_DLP_TITLE_ARGS_FORMAT = "--get-title --get-url -f \"best[ext=mp4]/best\" --no-warnings \"{0}\"";
-        private const string BROWSER_FOR_COOKIES = "firefox";
+        const string YT_DLP_TITLE_ARGS_FORMAT = "--get-title --get-url -f \"best[ext=mp4]/best\" --no-warnings \"{0}\"";
+        const string BROWSER_FOR_COOKIES = "firefox";
 
-        private readonly YtDlpConfigurationManager _configManager;
-        private readonly YtDlpUrlCache _urlCache;
-        private readonly ProcessExecutor _processExecutor;
-        private readonly YouTubeUrlProcessor _urlProcessor;
-        private readonly Mp4Converter _mp4Converter;
+        readonly YtDlpConfigurationManager m_configManager;
+        readonly YtDlpUrlCache m_urlCache;
+        readonly ProcessExecutor m_processExecutor;
+        readonly YouTubeUrlProcessor m_urlProcessor;
+        readonly Mp4Converter m_mp4Converter;
 
         public YtDlpService() {
-            _configManager = new YtDlpConfigurationManager();
-            _urlProcessor = new YouTubeUrlProcessor();
-            _urlCache = new YtDlpUrlCache(_urlProcessor);
-            _processExecutor = new ProcessExecutor(_configManager.GetFFmpegPath());
-            _mp4Converter = new Mp4Converter(_processExecutor, _urlProcessor);
+            m_configManager = new YtDlpConfigurationManager();
+            m_urlProcessor = new YouTubeUrlProcessor();
+            m_urlCache = new YtDlpUrlCache(m_urlProcessor);
+            m_processExecutor = new ProcessExecutor(m_configManager.GetFFmpegPath());
+            m_mp4Converter = new Mp4Converter(m_processExecutor, m_urlProcessor);
         }
 
-        public string GetCacheTitle(string videoUrl) => _urlCache.GetCacheTitle(videoUrl);
+        public string GetCacheTitle(string videoUrl) => m_urlCache.GetCacheTitle(videoUrl);
 
         public async Task<string> GetDirectUrlAsync(string videoUrl, CancellationToken cancellationToken) {
-            _urlProcessor.ValidateUrl(videoUrl);
+            m_urlProcessor.ValidateUrl(videoUrl);
 
-            string trimUrl = _urlProcessor.TrimYouTubeUrl(videoUrl);
-            string cacheKey = _urlProcessor.TryExtractVideoId(videoUrl) ?? videoUrl;
+            string trimUrl = m_urlProcessor.TrimYouTubeUrl(videoUrl);
+            string cacheKey = m_urlProcessor.TryExtractVideoId(videoUrl) ?? videoUrl;
 
-            if (_urlCache.TryGetCachedEntry(cacheKey, out var existingEntry)) {
+            if (m_urlCache.TryGetCachedEntry(cacheKey, out var existingEntry)) {
                 return existingEntry.DirectUrl;
             }
 
@@ -55,11 +53,11 @@ namespace TCS.YoutubePlayer {
                 );
             }
 
-            var cookieArg = $" --cookies-from-browser \"{_urlProcessor.SanitizeForShell(BROWSER_FOR_COOKIES)}\"";
-            string arguments = string.Format(YT_DLP_TITLE_ARGS_FORMAT, _urlProcessor.SanitizeForShell(trimUrl)) + cookieArg;
+            var cookieArg = $" --cookies-from-browser \"{m_urlProcessor.SanitizeForShell(BROWSER_FOR_COOKIES)}\"";
+            string arguments = string.Format(YT_DLP_TITLE_ARGS_FORMAT, m_urlProcessor.SanitizeForShell(trimUrl)) + cookieArg;
 
-            var result = await _processExecutor.RunProcessAsync(
-                _configManager.GetYtDlpPath(), 
+            var result = await m_processExecutor.RunProcessAsync(
+                m_configManager.GetYtDlpPath(), 
                 arguments, 
                 cancellationToken
             );
@@ -85,20 +83,20 @@ namespace TCS.YoutubePlayer {
                 throw new YtDlpException($"yt-dlp returned an invalid direct URL: {directUrl}");
             }
             
-            var expiresAt = _urlProcessor.ParseExpiryFromUrl(directUrl);
-            _urlCache.AddToCache(videoUrl, directUrl, title, expiresAt);
+            DateTime? expiresAt = m_urlProcessor.ParseExpiryFromUrl(directUrl);
+            m_urlCache.AddToCache(videoUrl, directUrl, title, expiresAt);
 
             return directUrl;
         }
 
         public Task<string> ConvertToMp4Async(string hlsUrl, CancellationToken cancellationToken) =>
-            _mp4Converter.ConvertToMp4Async(hlsUrl, cancellationToken);
+            m_mp4Converter.ConvertToMp4Async(hlsUrl, cancellationToken);
 
         public async Task<string> GetCurrentYtDlpVersionAsync(CancellationToken cancellationToken) {
             Logger.Log("[YtDlpService] Checking yt-dlp version...");
 
-            string ytDlpExecutablePath = _configManager.GetYtDlpPath();
-            var result = await _processExecutor.RunProcessAsync(
+            string ytDlpExecutablePath = m_configManager.GetYtDlpPath();
+            var result = await m_processExecutor.RunProcessAsync(
                 ytDlpExecutablePath,
                 "--version",
                 cancellationToken
@@ -121,8 +119,8 @@ namespace TCS.YoutubePlayer {
         public async Task<YtDlpUpdateResult> UpdateYtDlpAsync(CancellationToken cancellationToken) {
             Logger.Log("[YtDlpService] Attempting to update yt-dlp...");
 
-            string ytDlpExecutablePath = _configManager.GetYtDlpPath();
-            var result = await _processExecutor.RunProcessAsync(
+            string ytDlpExecutablePath = m_configManager.GetYtDlpPath();
+            var result = await m_processExecutor.RunProcessAsync(
                 ytDlpExecutablePath,
                 "--update",
                 cancellationToken
@@ -228,7 +226,7 @@ namespace TCS.YoutubePlayer {
             }
         }
 
-        private static bool ContainsUpToDateMessage(string text) {
+        static bool ContainsUpToDateMessage(string text) {
             if (string.IsNullOrEmpty(text)) return false;
             return text.Contains("is already the newest version", StringComparison.OrdinalIgnoreCase)
                    || text.Contains("is up to date", StringComparison.OrdinalIgnoreCase);

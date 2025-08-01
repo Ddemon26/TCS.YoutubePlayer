@@ -3,24 +3,24 @@ using System.Threading.Tasks;
 
 namespace TCS.YoutubePlayer {
     public static class YtDlpExternalTool {
-        private static readonly YtDlpService _service = new YtDlpService();
+        static readonly YtDlpService Service = new YtDlpService();
 
         public static string GetCacheTitle(string videoUrl) => 
-            _service.GetCacheTitle(videoUrl);
+            Service.GetCacheTitle(videoUrl);
 
         public static Task<string> GetDirectUrlAsync(string videoUrl, CancellationToken cancellationToken) =>
-            _service.GetDirectUrlAsync(videoUrl, cancellationToken);
+            Service.GetDirectUrlAsync(videoUrl, cancellationToken);
 
         public static Task<string> ConvertToMp4Async(string hlsUrl, CancellationToken cancellationToken) =>
-            _service.ConvertToMp4Async(hlsUrl, cancellationToken);
+            Service.ConvertToMp4Async(hlsUrl, cancellationToken);
 
         public static Task<string> GetCurrentYtDlpVersionAsync(CancellationToken cancellationToken) =>
-            _service.GetCurrentYtDlpVersionAsync(cancellationToken);
+            Service.GetCurrentYtDlpVersionAsync(cancellationToken);
 
         public static Task<YtDlpUpdateResult> UpdateYtDlpAsync(CancellationToken cancellationToken) =>
-            _service.UpdateYtDlpAsync(cancellationToken);
+            Service.UpdateYtDlpAsync(cancellationToken);
 
         public static Task PerformYtDlpUpdateCheckAsync(CancellationToken cancellationToken) =>
-            _service.PerformYtDlpUpdateCheckAsync(cancellationToken);
+            Service.PerformYtDlpUpdateCheckAsync(cancellationToken);
     }
 }

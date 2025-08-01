@@ -1,5 +1,3 @@
-using System;
-
 namespace TCS.YoutubePlayer.Exceptions {
     public class YtDlpException : Exception {
         public YtDlpException(string message) : base(message) { }

@@ -1,20 +1,19 @@
 using System.IO;
 using Newtonsoft.Json;
-using UnityEngine;
 using TCS.YoutubePlayer.Exceptions;
 
 namespace TCS.YoutubePlayer.Configuration {
     public class YtDlpConfigurationManager {
-        private readonly YtDlpConfig _config;
+        readonly YtDlpConfig m_config;
 
         public YtDlpConfigurationManager() {
-            _config = LoadConfiguration();
+            m_config = LoadConfiguration();
         }
 
         public string GetYtDlpPath() {
             string basePath = Path.Combine(
                 Application.streamingAssetsPath,
-                _config.GetNameVersion(),
+                m_config.GetNameVersion(),
                 "yt-dlp"
             );
 
@@ -37,7 +36,7 @@ namespace TCS.YoutubePlayer.Configuration {
         public string GetFFmpegPath() {
             string basePath = Path.Combine(
                 Application.streamingAssetsPath,
-                _config.GetNameVersion(),
+                m_config.GetNameVersion(),
                 "ffmpeg"
             );
 
@@ -57,7 +56,7 @@ namespace TCS.YoutubePlayer.Configuration {
             };
         }
 
-        private YtDlpConfig LoadConfiguration() {
+        YtDlpConfig LoadConfiguration() {
             string projectRoot = Path.GetDirectoryName(Application.dataPath);
             if (string.IsNullOrEmpty(projectRoot)) {
                 throw new YtDlpException(

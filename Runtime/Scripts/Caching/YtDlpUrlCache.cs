@@ -1,23 +1,20 @@
-using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
-using UnityEngine;
 using TCS.YoutubePlayer.UrlProcessing;
 using Logger = TCS.YoutubePlayer.Utils.Logger;
 
 namespace TCS.YoutubePlayer.Caching {
     public class YtDlpUrlCache {
-        private readonly ConcurrentDictionary<string, CacheEntry> _cache = new();
-        private readonly TimeSpan _defaultCacheExpiration = TimeSpan.FromHours(4);
-        private readonly string _cacheFilePath = Path.Combine(Application.persistentDataPath, "yt_dlp_url_cache.json");
-        private readonly YouTubeUrlProcessor _urlProcessor;
+        readonly ConcurrentDictionary<string, CacheEntry> m_cache = new();
+        readonly TimeSpan m_defaultCacheExpiration = TimeSpan.FromHours(4);
+        readonly string m_cacheFilePath = Path.Combine(Application.persistentDataPath, "yt_dlp_url_cache.json");
+        readonly YouTubeUrlProcessor m_urlProcessor;
 
         public YtDlpUrlCache(YouTubeUrlProcessor urlProcessor) {
-            _urlProcessor = urlProcessor ?? throw new ArgumentNullException(nameof(urlProcessor));
+            m_urlProcessor = urlProcessor ?? throw new ArgumentNullException(nameof(urlProcessor));
             _ = Task.Run(LoadCacheFromFileAsync);
 
             #if !UNITY_EDITOR
@@ -37,7 +34,7 @@ namespace TCS.YoutubePlayer.Caching {
             }
             
             string cacheKey = ExtractVideoIdOrUrl(videoUrl);
-            return _cache.TryGetValue(cacheKey, out var entry) ? entry.Title : "Not found in cache";
+            return m_cache.TryGetValue(cacheKey, out var entry) ? entry.Title : "Not found in cache";
         }
 
         public bool TryGetCachedEntry(string videoUrl, out CacheEntry entry) {
@@ -46,7 +43,7 @@ namespace TCS.YoutubePlayer.Caching {
 
             string cacheKey = ExtractVideoIdOrUrl(videoUrl);
             
-            if (_cache.TryGetValue(cacheKey, out entry) && DateTime.UtcNow < entry.ExpiresAt) {
+            if (m_cache.TryGetValue(cacheKey, out entry) && DateTime.UtcNow < entry.ExpiresAt) {
                 return true;
             }
 
@@ -57,64 +54,64 @@ namespace TCS.YoutubePlayer.Caching {
             if (string.IsNullOrWhiteSpace(videoUrl) || string.IsNullOrWhiteSpace(directUrl)) return;
 
             string cacheKey = ExtractVideoIdOrUrl(videoUrl);
-            var expiry = expiresAt ?? DateTime.UtcNow.Add(_defaultCacheExpiration);
+            var expiry = expiresAt ?? DateTime.UtcNow.Add(m_defaultCacheExpiration);
             
-            _cache[cacheKey] = new CacheEntry(directUrl, title, videoUrl, expiry);
+            m_cache[cacheKey] = new CacheEntry(directUrl, title, videoUrl, expiry);
         }
 
-        private async Task LoadCacheFromFileAsync() {
-            if (File.Exists(_cacheFilePath)) {
+        async Task LoadCacheFromFileAsync() {
+            if (File.Exists(m_cacheFilePath)) {
                 try {
-                    string json = await File.ReadAllTextAsync(_cacheFilePath);
+                    string json = await File.ReadAllTextAsync(m_cacheFilePath);
                     Dictionary<string, CacheEntry> loadedEntries = JsonConvert.DeserializeObject<Dictionary<string, CacheEntry>>(json);
 
                     if (loadedEntries != null) {
                         int loadedCount = 0;
                         foreach (KeyValuePair<string, CacheEntry> kvp in loadedEntries) {
                             if (DateTime.UtcNow < kvp.Value.ExpiresAt) {
-                                if (_cache.TryAdd(kvp.Key, kvp.Value)) {
+                                if (m_cache.TryAdd(kvp.Key, kvp.Value)) {
                                     loadedCount++;
                                 }
                             }
                         }
 
-                        Logger.Log($"[UrlCache] Loaded {loadedCount} non-expired entries from cache file: `{_cacheFilePath}`");
+                        Logger.Log($"[UrlCache] Loaded {loadedCount} non-expired entries from cache file: `{m_cacheFilePath}`");
                     }
                 }
                 catch (Exception ex) {
-                    Logger.LogError($"[UrlCache] Failed to load cache from `{_cacheFilePath}`: {ex.Message}. Starting with an empty cache.");
+                    Logger.LogError($"[UrlCache] Failed to load cache from `{m_cacheFilePath}`: {ex.Message}. Starting with an empty cache.");
                 }
             }
             else {
-                Logger.Log($"[UrlCache] Cache file not found at `{_cacheFilePath}`. Starting with an empty cache.");
+                Logger.Log($"[UrlCache] Cache file not found at `{m_cacheFilePath}`. Starting with an empty cache.");
             }
         }
 
-        private void SaveCacheToFile() {
+        void SaveCacheToFile() {
             try {
-                Dictionary<string, CacheEntry> entriesToSave = _cache
+                Dictionary<string, CacheEntry> entriesToSave = m_cache
                     .Where(kvp => DateTime.UtcNow < kvp.Value.ExpiresAt)
                     .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
 
                 if (entriesToSave.Any()) {
                     string json = JsonConvert.SerializeObject(entriesToSave, Formatting.Indented);
-                    File.WriteAllText(_cacheFilePath, json);
-                    Logger.Log($"[UrlCache] Saved {entriesToSave.Count} cache entries to: `{_cacheFilePath}`");
+                    File.WriteAllText(m_cacheFilePath, json);
+                    Logger.Log($"[UrlCache] Saved {entriesToSave.Count} cache entries to: `{m_cacheFilePath}`");
                 }
                 else {
-                    if (File.Exists(_cacheFilePath)) {
-                        File.Delete(_cacheFilePath);
-                        Logger.Log($"[UrlCache] No valid cache entries to save. Deleted existing cache file: `{_cacheFilePath}`");
+                    if (File.Exists(m_cacheFilePath)) {
+                        File.Delete(m_cacheFilePath);
+                        Logger.Log($"[UrlCache] No valid cache entries to save. Deleted existing cache file: `{m_cacheFilePath}`");
                     }
                 }
             }
             catch (Exception ex) {
-                Logger.LogError($"[UrlCache] Failed to save cache to `{_cacheFilePath}`: {ex.Message}");
+                Logger.LogError($"[UrlCache] Failed to save cache to `{m_cacheFilePath}`: {ex.Message}");
             }
         }
 
-        private string ExtractVideoIdOrUrl(string videoUrl) {
-            return _urlProcessor.TryExtractVideoId(videoUrl) ?? videoUrl;
+        string ExtractVideoIdOrUrl(string videoUrl) {
+            return m_urlProcessor.TryExtractVideoId(videoUrl) ?? videoUrl;
         }
     }
 }
