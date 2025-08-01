@@ -33,9 +33,32 @@ namespace TCS.YoutubePlayer {
             m_mp4Converter = new Mp4Converter(m_processExecutor, m_urlProcessor);
         }
 
+        public async Task InitializeToolsAsync(CancellationToken cancellationToken = default) {
+            Logger.Log("[YtDlpService] Initializing external tools...");
+            
+            try {
+                var ytDlpTask = m_configManager.EnsureYtDlpAsync(cancellationToken);
+                var ffmpegTask = m_configManager.EnsureFFmpegAsync(cancellationToken);
+                
+                await Task.WhenAll(ytDlpTask, ffmpegTask);
+                
+                string ytDlpPath = await ytDlpTask;
+                string ffmpegPath = await ffmpegTask;
+                
+                Logger.Log($"[YtDlpService] Tools initialized successfully:");
+                Logger.Log($"  yt-dlp: {ytDlpPath}");
+                Logger.Log($"  ffmpeg: {ffmpegPath}");
+            }
+            catch (Exception ex) {
+                Logger.LogError($"[YtDlpService] Failed to initialize external tools: {ex.Message}");
+                throw;
+            }
+        }
+
         public string GetCacheTitle(string videoUrl) => m_urlCache.GetCacheTitle(videoUrl);
 
         public async Task<string> GetDirectUrlAsync(string videoUrl, CancellationToken cancellationToken) {
+            await m_configManager.EnsureYtDlpAsync(cancellationToken);
             m_urlProcessor.ValidateUrl(videoUrl);
 
             string trimUrl = m_urlProcessor.TrimYouTubeUrl(videoUrl);
@@ -95,7 +118,7 @@ namespace TCS.YoutubePlayer {
         public async Task<string> GetCurrentYtDlpVersionAsync(CancellationToken cancellationToken) {
             Logger.Log("[YtDlpService] Checking yt-dlp version...");
 
-            string ytDlpExecutablePath = m_configManager.GetYtDlpPath();
+            string ytDlpExecutablePath = await m_configManager.EnsureYtDlpAsync(cancellationToken);
             var result = await m_processExecutor.RunProcessAsync(
                 ytDlpExecutablePath,
                 "--version",
@@ -119,7 +142,7 @@ namespace TCS.YoutubePlayer {
         public async Task<YtDlpUpdateResult> UpdateYtDlpAsync(CancellationToken cancellationToken) {
             Logger.Log("[YtDlpService] Attempting to update yt-dlp...");
 
-            string ytDlpExecutablePath = m_configManager.GetYtDlpPath();
+            string ytDlpExecutablePath = await m_configManager.EnsureYtDlpAsync(cancellationToken);
             var result = await m_processExecutor.RunProcessAsync(
                 ytDlpExecutablePath,
                 "--update",
@@ -236,6 +259,7 @@ namespace TCS.YoutubePlayer {
             m_mp4Converter?.Dispose();
             m_processExecutor?.Dispose();
             m_urlCache?.Dispose();
+            m_configManager?.Dispose();
         }
     }
 }

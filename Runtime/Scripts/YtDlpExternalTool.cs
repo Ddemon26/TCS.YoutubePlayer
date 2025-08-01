@@ -22,5 +22,8 @@ namespace TCS.YoutubePlayer {
 
         public static Task PerformYtDlpUpdateCheckAsync(CancellationToken cancellationToken) =>
             Service.PerformYtDlpUpdateCheckAsync(cancellationToken);
+
+        public static Task InitializeToolsAsync(CancellationToken cancellationToken = default) =>
+            Service.InitializeToolsAsync(cancellationToken);
     }
 }

@@ -31,13 +31,17 @@ namespace TCS.YoutubePlayer {
                 // Optional: Subscribe to other events as needed
         
                 try {
+                    Debug.Log("[YoutubePlayer] Initializing external tools...");
+                    await YtDlpExternalTool.InitializeToolsAsync(m_cts.Token);
+                    Debug.Log("[YoutubePlayer] External tools initialized successfully.");
+                    
                     await YtDlpExternalTool.PerformYtDlpUpdateCheckAsync(m_cts.Token);
                 }
                 catch (OperationCanceledException) {
-                    Debug.LogWarning("[YoutubePlayer] yt-dlp update check was cancelled during initialization.");
+                    Debug.LogWarning("[YoutubePlayer] Tool initialization or update check was cancelled during initialization.");
                 }
                 catch (Exception e) {
-                    Debug.LogError($"[YoutubePlayer] Failed to check for yt-dlp updates: {e.Message}");
+                    Debug.LogError($"[YoutubePlayer] Failed to initialize tools or check for updates: {e.Message}");
                 }
             }
             catch (Exception e) {

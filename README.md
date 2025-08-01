@@ -14,27 +14,37 @@ TCS\.YoutubePlayer is a Unity project designed to integrate YouTube video playba
 
 - `Editor` – Editor tools and related assembly definitions
 - `Runtime` – Core runtime scripts, materials, prefabs, and textures
-- `StreamingAssets~` – External tools including ffmpeg and yt\-dlp
+- `Runtime/Scripts/ToolManagement` – Automatic tool download and management system
 
 ## Requirements
 
 - Unity Editor
-- ffmpeg
-- yt\-dlp
+- Internet connection (for automatic tool downloads on first use)
 
-## YT-DLP Setup
-File|Description
-:---|:---
-[yt-dlp](https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp)|Platform-independent [zipimport](https://docs.python.org/3/library/zipimport.html) binary. Needs Python (recommended for **Linux/BSD**)
-[yt-dlp.exe](https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp.exe)|Windows (Win8+) standalone x64 binary (recommended for **Windows**)
-[yt-dlp_macos](https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_macos)|Universal MacOS (10.15+) standalone executable (recommended for **MacOS**)
+## External Tools Setup
 
-## ffmpeg Setup
-File|Description
-:---|:---
-[ffmpeg.exe](https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-full.7z) |Windows (Win8+) standalone x64 binary (recommended for **Windows**)
-[ffmpeg](Unkown) |Linux (x64) standalone binary (recommended for **Linux**)
-[ffmpeg](Unkown) |MacOS (x64) standalone binary (recommended for **MacOS**)
+**No manual setup required!** TCS.YoutubePlayer automatically downloads and manages external tools on first use.
+
+### Automatic Downloads
+The system will automatically download:
+- **yt-dlp.exe** - Latest version from GitHub releases for Windows
+- **ffmpeg-essentials** - Essential build from gyan.dev for Windows
+
+### Download Locations
+Tools are downloaded to: `Assets/StreamingAssets/TCS.YoutubePlayer.{version}/`
+
+Structure:
+- `yt-dlp/Windows/yt-dlp.exe`
+- `ffmpeg/Windows/bin/ffmpeg.exe`
+
+### Supported Platforms
+- **Windows**: Full support with automatic downloads
+- **macOS/Linux**: Support planned (manual installation required for now)
+
+### Manual Override (Advanced)
+If you need to use custom tool versions, you can:
+1. Place tools at the expected paths in the StreamingAssets directory structure
+2. Update the tool_versions.json file in the StreamingAssets directory to prevent re-downloads
 ## Usage
 
 Add the YouTube Player prefab from `Runtime/Prefabs` to your scene and configure the settings via the Inspector.

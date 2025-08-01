@@ -1,59 +1,34 @@
 using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
 using Newtonsoft.Json;
 using TCS.YoutubePlayer.Exceptions;
+using TCS.YoutubePlayer.ToolManagement;
 
 namespace TCS.YoutubePlayer.Configuration {
-    public class YtDlpConfigurationManager {
+    public class YtDlpConfigurationManager : IDisposable {
         readonly YtDlpConfig m_config;
+        readonly ToolDownloadManager m_toolDownloadManager;
 
         public YtDlpConfigurationManager() {
             m_config = LoadConfiguration();
+            m_toolDownloadManager = new ToolDownloadManager(m_config.GetNameVersion());
         }
 
         public string GetYtDlpPath() {
-            string basePath = Path.Combine(
-                Application.streamingAssetsPath,
-                m_config.GetNameVersion(),
-                "yt-dlp"
-            );
+            return m_toolDownloadManager.GetYtDlpPath();
+        }
 
-            return Application.platform switch {
-                RuntimePlatform.WindowsPlayer or RuntimePlatform.WindowsEditor
-                    => Path.Combine(basePath, "Windows", "yt-dlp.exe"),
-
-                RuntimePlatform.OSXPlayer or RuntimePlatform.OSXEditor
-                    => Path.Combine(basePath, "macOS", "yt-dlp"),
-
-                RuntimePlatform.LinuxPlayer or RuntimePlatform.LinuxEditor
-                    => Path.Combine(basePath, "Linux", "yt-dlp"),
-
-                _ => throw new NotSupportedException(
-                    $"Platform {Application.platform} is not supported for yt-dlp execution."
-                ),
-            };
+        public async Task<string> EnsureYtDlpAsync(CancellationToken cancellationToken = default) {
+            return await m_toolDownloadManager.EnsureYtDlpAsync(cancellationToken);
         }
 
         public string GetFFmpegPath() {
-            string basePath = Path.Combine(
-                Application.streamingAssetsPath,
-                m_config.GetNameVersion(),
-                "ffmpeg"
-            );
+            return m_toolDownloadManager.GetFFmpegPath();
+        }
 
-            return Application.platform switch {
-                RuntimePlatform.WindowsPlayer or RuntimePlatform.WindowsEditor
-                    => Path.Combine(basePath, "Windows", "bin", "ffmpeg.exe"),
-
-                RuntimePlatform.OSXPlayer or RuntimePlatform.OSXEditor
-                    => Path.Combine(basePath, "macOS", "bin", "ffmpeg"),
-
-                RuntimePlatform.LinuxPlayer or RuntimePlatform.LinuxEditor
-                    => Path.Combine(basePath, "Linux", "bin", "ffmpeg"),
-
-                _ => throw new NotSupportedException(
-                    $"Platform {Application.platform} is not supported for FFmpeg."
-                ),
-            };
+        public async Task<string> EnsureFFmpegAsync(CancellationToken cancellationToken = default) {
+            return await m_toolDownloadManager.EnsureFFmpegAsync(cancellationToken);
         }
 
         YtDlpConfig LoadConfiguration() {
@@ -104,6 +79,10 @@ namespace TCS.YoutubePlayer.Configuration {
             catch (IOException ioEx) {
                 throw new ConfigurationException($"Failed to read configuration from `{configPath}`.", configPath, ioEx);
             }
+        }
+
+        public void Dispose() {
+            m_toolDownloadManager?.Dispose();
         }
     }
 }

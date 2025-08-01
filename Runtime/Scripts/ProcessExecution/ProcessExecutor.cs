@@ -8,9 +8,13 @@ using Logger = TCS.YoutubePlayer.Utils.Logger;
 
 namespace TCS.YoutubePlayer.ProcessExecution {
     public class ProcessExecutor : IDisposable {
-        readonly string m_ffmpegPath;
+        string m_ffmpegPath;
 
         public ProcessExecutor(string ffmpegPath) {
+            m_ffmpegPath = ffmpegPath;
+        }
+
+        public void UpdateFFmpegPath(string ffmpegPath) {
             m_ffmpegPath = ffmpegPath;
         }
 
@@ -19,6 +23,11 @@ namespace TCS.YoutubePlayer.ProcessExecution {
             string arguments,
             CancellationToken cancellationToken
         ) {
+            // For ffmpeg commands, resolve the full path
+            if (fileName == "ffmpeg" && !string.IsNullOrEmpty(m_ffmpegPath)) {
+                fileName = m_ffmpegPath;
+            }
+            
             TaskCompletionSource<ProcessResult> tcs = new();
             var process = new Process {
                 StartInfo = {
@@ -112,11 +121,13 @@ namespace TCS.YoutubePlayer.ProcessExecution {
         }
 
         void SetEnvironmentVariables(Process process) {
-            #if UNITY_2020_1_OR_NEWER
-            process.StartInfo.Environment["FFMPEG_LOCATION"] = m_ffmpegPath;
-            #else
-            process.StartInfo.EnvironmentVariables["FFMPEG_LOCATION"] = _ffmpegPath;
-            #endif
+            if (!string.IsNullOrEmpty(m_ffmpegPath)) {
+                #if UNITY_2020_1_OR_NEWER
+                process.StartInfo.Environment["FFMPEG_LOCATION"] = m_ffmpegPath;
+                #else
+                process.StartInfo.EnvironmentVariables["FFMPEG_LOCATION"] = m_ffmpegPath;
+                #endif
+            }
         }
 
         public void Dispose() {
