@@ -1,0 +1,533 @@
+/* Import base styles */
+@import url('index-base.css');
+
+/* Blue theme CSS variables */
+:root {
+    --header-bg: #2563eb;
+    --header-text: #ffffff;
+    --bg-primary: #ffffff;
+    --bg-secondary: #f8f8f8;
+    --bg-tertiary: #f0f0f0;
+    --text-primary: #000000;
+    --text-secondary: #333333;
+    --text-muted: #666666;
+    --accent-primary: #2563eb;
+    --accent-secondary: #1d4ed8;
+    --accent-light: #dbeafe;
+    --accent-lighter: #eff6ff;
+    --border-primary: #cccccc;
+    --border-secondary: #e0e0e0;
+    --shadow-light: rgba(0,0,0,0.1);
+    --error-bg: #fff5f5;
+    --error-border: #fed7d7;
+    --error-text: #c53030;
+    --error-text-secondary: #742a2a;
+    --theme-toggle-bg: #2563eb;
+    --theme-toggle-text: #ffffff;
+    --sidebar-bg: #f8f8f8;
+    --toc-bg: #ffffff;
+    --syntax-string: #22863a;
+    --syntax-function: #6f42c1;
+    --syntax-number: #005cc5;
+}
+
+/* Enhanced navigation styles for nested structure */
+.nav-subsection {
+    margin-left: 15px;
+    border-left: 1px solid var(--border-secondary);
+    padding-left: 10px;
+}
+
+.nav-section-title {
+    font-weight: bold;
+    color: var(--text-secondary);
+    display: block;
+    padding: 5px 0;
+    cursor: pointer;
+}
+
+.nav-section-title:hover {
+    color: var(--accent-primary);
+}
+
+.nav-item-depth-1 {
+    margin-left: 10px;
+}
+
+.nav-item-depth-2 {
+    margin-left: 20px;
+}
+
+.nav-item-depth-3 {
+    margin-left: 30px;
+}
+
+/* Improve navigation link styling */
+.nav a {
+    display: block;
+    padding: 3px 8px;
+    color: var(--text-primary);
+    text-decoration: none;
+    border-radius: 3px;
+    font-size: 13px;
+    transition: all 0.2s ease;
+}
+
+.nav a:hover {
+    background-color: var(--accent-lighter);
+    color: var(--accent-primary);
+}
+
+.nav a.active {
+    background-color: var(--accent-primary);
+    color: white;
+}
+
+/* Collapsible navigation sections */
+.nav-section .nav-subsection {
+    max-height: none;
+    overflow: visible;
+    transition: max-height 0.3s ease;
+}
+
+.nav-section.collapsed .nav-subsection {
+    max-height: 0;
+    overflow: hidden;
+}
+
+/* Add expand/collapse indicators */
+.nav-section-title::before {
+    content: "▼";
+    display: inline-block;
+    width: 12px;
+    font-size: 10px;
+    color: var(--text-muted);
+    transition: transform 0.2s ease;
+}
+
+.nav-section.collapsed .nav-section-title::before {
+    transform: rotate(-90deg);
+}/* ArcadeVe
+hicle Documentation Styles */
+
+/* Welcome section styling */
+.welcome-section {
+    background: linear-gradient(135deg, var(--accent-lighter) 0%, var(--bg-secondary) 100%);
+    padding: 2rem;
+    border-radius: 8px;
+    margin-bottom: 2rem;
+    border: 1px solid var(--border-secondary);
+}
+
+.welcome-section h1 {
+    color: var(--accent-primary);
+    margin-bottom: 1rem;
+    font-size: 2.5rem;
+    text-align: center;
+}
+
+.welcome-section .lead {
+    font-size: 1.2rem;
+    color: var(--text-secondary);
+    text-align: center;
+    margin-bottom: 2rem;
+    line-height: 1.6;
+}
+
+/* Feature grid */
+.feature-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-top: 2rem;
+}
+
+.feature-card {
+    background: var(--bg-primary);
+    padding: 1.5rem;
+    border-radius: 6px;
+    border: 1px solid var(--border-secondary);
+    text-align: center;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.feature-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px var(--shadow-light);
+}
+
+.feature-card h3 {
+    color: var(--accent-primary);
+    margin-bottom: 0.5rem;
+    font-size: 1.1rem;
+}
+
+.feature-card p {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+
+/* Section styling */
+.section {
+    margin-bottom: 3rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid var(--border-secondary);
+}
+
+.section:last-child {
+    border-bottom: none;
+}
+
+/* Code examples */
+.code-example {
+    margin: 1.5rem 0;
+    background: var(--bg-secondary);
+    border-radius: 6px;
+    overflow: hidden;
+    border: 1px solid var(--border-secondary);
+}
+
+.code-example h4 {
+    background: var(--accent-light);
+    color: var(--accent-primary);
+    padding: 0.75rem 1rem;
+    margin: 0;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.code-example pre {
+    margin: 0;
+    border-radius: 0;
+    border: none;
+}
+
+/* Architecture diagram */
+.architecture-diagram {
+    background: var(--bg-secondary);
+    padding: 2rem;
+    border-radius: 8px;
+    margin: 2rem 0;
+    text-align: center;
+}
+
+.component-box {
+    background: var(--bg-primary);
+    border: 2px solid var(--accent-primary);
+    border-radius: 6px;
+    padding: 1rem;
+    margin: 0.5rem;
+    display: inline-block;
+    min-width: 150px;
+}
+
+.component-box.main-controller {
+    background: var(--accent-light);
+    border-color: var(--accent-secondary);
+    font-weight: bold;
+}
+
+.component-row {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin: 1rem 0;
+}
+
+.component-box h4, .component-box h5 {
+    margin: 0 0 0.5rem 0;
+    color: var(--accent-primary);
+}
+
+.component-box p {
+    margin: 0;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+/* Physics features grid */
+.physics-features {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin: 2rem 0;
+}
+
+.physics-card {
+    background: var(--bg-secondary);
+    padding: 1.5rem;
+    border-radius: 6px;
+    border: 1px solid var(--border-secondary);
+}
+
+.physics-card h4 {
+    color: var(--accent-primary);
+    margin-bottom: 1rem;
+    font-size: 1.1rem;
+}
+
+.physics-card ul {
+    margin: 0;
+    padding-left: 1.2rem;
+}
+
+.physics-card li {
+    margin-bottom: 0.5rem;
+    color: var(--text-primary);
+    font-size: 0.9rem;
+}
+
+/* Configuration tabs */
+.config-tabs {
+    margin: 2rem 0;
+}
+
+.tab-buttons {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid var(--border-secondary);
+}
+
+.tab-btn {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-secondary);
+    border-bottom: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 6px 6px 0 0;
+    cursor: pointer;
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+}
+
+.tab-btn:hover {
+    background: var(--accent-lighter);
+    color: var(--accent-primary);
+}
+
+.tab-btn.active {
+    background: var(--accent-light);
+    color: var(--accent-primary);
+    border-color: var(--accent-primary);
+}
+
+.tab-content {
+    display: none;
+    background: var(--bg-primary);
+    padding: 1.5rem;
+    border: 1px solid var(--border-secondary);
+    border-radius: 0 6px 6px 6px;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+.tab-content h4 {
+    margin-top: 0;
+    color: var(--accent-primary);
+}
+
+/* Debug features */
+.debug-features {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin: 2rem 0;
+}
+
+.debug-card {
+    background: var(--bg-secondary);
+    padding: 1.5rem;
+    border-radius: 6px;
+    border: 1px solid var(--border-secondary);
+}
+
+.debug-card h4 {
+    color: var(--accent-primary);
+    margin-bottom: 1rem;
+    font-size: 1.1rem;
+}
+
+.debug-card ul {
+    margin: 0;
+    padding-left: 1.2rem;
+}
+
+.debug-card li {
+    margin-bottom: 0.5rem;
+    color: var(--text-primary);
+    font-size: 0.9rem;
+}
+
+/* Performance features */
+.performance-features {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 2rem;
+    margin: 2rem 0;
+}
+
+.perf-card {
+    background: var(--bg-secondary);
+    padding: 1.5rem;
+    border-radius: 6px;
+    border: 1px solid var(--border-secondary);
+}
+
+.perf-card h4 {
+    color: var(--accent-primary);
+    margin-bottom: 1rem;
+    font-size: 1.1rem;
+}
+
+.perf-card p {
+    margin-bottom: 1rem;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.perf-card pre {
+    margin-top: 1rem;
+}
+
+/* Next steps */
+.next-steps {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin: 2rem 0;
+}
+
+.step-card {
+    background: var(--bg-secondary);
+    padding: 1.5rem;
+    border-radius: 6px;
+    border: 1px solid var(--border-secondary);
+    text-align: center;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.step-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px var(--shadow-light);
+}
+
+.step-card h4 {
+    color: var(--accent-primary);
+    margin-bottom: 0.5rem;
+    font-size: 1.1rem;
+}
+
+.step-card p {
+    color: var(--text-secondary);
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+}
+
+.btn-link {
+    display: inline-block;
+    background: var(--accent-primary);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    text-decoration: none;
+    font-size: 0.9rem;
+    transition: background-color 0.2s ease;
+}
+
+.btn-link:hover {
+    background: var(--accent-secondary);
+    text-decoration: none;
+    color: white;
+}
+
+/* Table styling */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1.5rem 0;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-secondary);
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+table th {
+    background: var(--accent-light);
+    color: var(--accent-primary);
+    padding: 0.75rem;
+    text-align: left;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+table td {
+    padding: 0.75rem;
+    border-top: 1px solid var(--border-secondary);
+    font-size: 0.9rem;
+}
+
+table tr:hover {
+    background: var(--bg-secondary);
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .feature-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .component-row {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .physics-features,
+    .debug-features,
+    .performance-features,
+    .next-steps {
+        grid-template-columns: 1fr;
+    }
+    
+    .tab-buttons {
+        flex-wrap: wrap;
+    }
+    
+    .welcome-section h1 {
+        font-size: 2rem;
+    }
+    
+    .welcome-section .lead {
+        font-size: 1rem;
+    }
+}
+
+/* Code syntax highlighting improvements */
+.main-content code[class*="language-csharp"] .token.keyword {
+    color: #0000ff;
+    font-weight: bold;
+}
+
+.main-content code[class*="language-csharp"] .token.string {
+    color: #a31515;
+}
+
+.main-content code[class*="language-csharp"] .token.comment {
+    color: #008000;
+    font-style: italic;
+}
+
+.main-content code[class*="language-csharp"] .token.class-name {
+    color: #2b91af;
+}
+
+.main-content code[class*="language-csharp"] .token.function {
+    color: #795e26;
+}
+
+.main-content code[class*="language-csharp"] .token.number {
+    color: #098658;
+}
