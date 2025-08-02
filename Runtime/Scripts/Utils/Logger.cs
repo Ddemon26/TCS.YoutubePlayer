@@ -1,4 +1,7 @@
+using System;
+using UnityEngine;
 using Object = UnityEngine.Object;
+
 namespace TCS.YoutubePlayer.Utils {
     internal static class Logger {
         const string CLASS_NAME = "YoutubePlayer";
@@ -109,12 +112,24 @@ namespace TCS.YoutubePlayer.Utils {
         }
 
         //Without context
+        [System.Diagnostics.Conditional("UNITY_EDITOR")]
+        [System.Diagnostics.Conditional("DEVELOPMENT_BUILD")]
         public static void Log(object message) => LogInternal(message, LogType.Log);
+        
         public static void LogWarning(object message) => LogInternal(message, LogType.Warning);
         public static void LogError(object message) => LogInternal(message, LogType.Error);
         public static void LogAssert(object message) => LogInternal(message, LogType.Assert);
         public static void LogException(object message) => LogInternal(message, LogType.Exception);
+        
+        [System.Diagnostics.Conditional("UNITY_EDITOR")]
         public static void LogTODO(object message) => LogInternal(message, LogType.TODO);
+        
+        // Performance debugging
+        [System.Diagnostics.Conditional("UNITY_EDITOR")]
+        [System.Diagnostics.Conditional("DEVELOPMENT_BUILD")]
+        public static void LogPerformance(string operation, TimeSpan duration) {
+            LogInternal($"[PERF] {operation} took {duration.TotalMilliseconds:F2}ms", LogType.Log);
+        }
 
         //With context
         public static void Log(object message, Object ctx) => LogInternal(message, LogType.Log, ctx);

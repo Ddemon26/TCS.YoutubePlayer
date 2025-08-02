@@ -1,9 +1,13 @@
 using System.Threading;
 using System.Threading.Tasks;
+using UnityEngine;
 
 namespace TCS.YoutubePlayer {
     public static class YtDlpExternalTool {
         static readonly YtDlpService Service = new();
+
+        static YtDlpExternalTool()
+            => Application.quitting += () => Service?.Dispose();
 
         public static string GetCacheTitle(string videoUrl) => 
             Service.GetCacheTitle(videoUrl);

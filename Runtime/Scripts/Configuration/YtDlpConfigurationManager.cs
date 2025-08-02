@@ -1,7 +1,9 @@
+using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using UnityEngine;
 using TCS.YoutubePlayer.Exceptions;
 using TCS.YoutubePlayer.ToolManagement;
 

@@ -1,3 +1,4 @@
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
@@ -18,11 +19,24 @@ namespace TCS.YoutubePlayer.ProcessExecution {
             m_ffmpegPath = ffmpegPath;
         }
 
+        /// <summary>
+        /// Runs an external process asynchronously with optional timeout support
+        /// </summary>
+        /// <param name="fileName">Path to executable file</param>
+        /// <param name="arguments">Command line arguments</param>
+        /// <param name="cancellationToken">Cancellation token</param>
+        /// <param name="timeout">Optional timeout for process execution</param>
+        /// <returns>Process result containing exit code and output</returns>
         public Task<ProcessResult> RunProcessAsync(
             string fileName,
             string arguments,
-            CancellationToken cancellationToken
+            CancellationToken cancellationToken,
+            TimeSpan? timeout = null
         ) {
+            if (string.IsNullOrWhiteSpace(fileName))
+                throw new ArgumentException("File name cannot be null or empty", nameof(fileName));
+            if (arguments == null)
+                throw new ArgumentNullException(nameof(arguments));
             // For ffmpeg commands, resolve the full path
             if (fileName == "ffmpeg" && !string.IsNullOrEmpty(m_ffmpegPath)) {
                 fileName = m_ffmpegPath;
@@ -48,14 +62,25 @@ namespace TCS.YoutubePlayer.ProcessExecution {
             var stdoutBuilder = new StringBuilder();
             var stderrBuilder = new StringBuilder();
             CancellationTokenRegistration ctr = default;
+            var startTime = DateTime.UtcNow;
+            
+            // Set up timeout if specified
+            using var timeoutCts = timeout.HasValue ? new CancellationTokenSource(timeout.Value) : null;
+            var combinedToken = timeoutCts != null 
+                ? CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutCts.Token).Token
+                : cancellationToken;
 
-            if (cancellationToken.CanBeCanceled) {
-                ctr = cancellationToken.Register(() => {
+            if (combinedToken.CanBeCanceled) {
+                ctr = combinedToken.Register(() => {
                     try {
                         if (!process.HasExited) {
                             process.Kill();
+                            
+                            string reason = timeoutCts?.Token.IsCancellationRequested == true 
+                                ? "timeout" 
+                                : "cancellation";
                             Logger.LogWarning(
-                                $"[ProcessExecutor] Killed process {Path.GetFileName(fileName)} due to cancellation."
+                                $"[ProcessExecutor] Killed process {Path.GetFileName(fileName)} due to {reason}."
                             );
                         }
                     }
@@ -66,7 +91,11 @@ namespace TCS.YoutubePlayer.ProcessExecution {
                         Logger.LogError($"[ProcessExecutor] Exception trying to kill process: {ex.Message}");
                     }
 
-                    tcs.TrySetCanceled(cancellationToken);
+                    if (timeoutCts?.Token.IsCancellationRequested == true) {
+                        tcs.TrySetException(new TimeoutException($"Process {Path.GetFileName(fileName)} timed out after {timeout}"));
+                    } else {
+                        tcs.TrySetCanceled(cancellationToken);
+                    }
                 });
             }
 
@@ -81,16 +110,32 @@ namespace TCS.YoutubePlayer.ProcessExecution {
             };
 
             process.Exited += (_, _) => {
-                var result = new ProcessResult(
-                    process.ExitCode, 
-                    stdoutBuilder.ToString(), 
-                    stderrBuilder.ToString()
-                );
-                tcs.TrySetResult(result);
-                
-                if (cancellationToken.CanBeCanceled)
-                    ctr.Dispose();
-                process.Dispose();
+                try {
+                    var duration = DateTime.UtcNow - startTime;
+                    var result = new ProcessResult(
+                        process.ExitCode, 
+                        stdoutBuilder.ToString(), 
+                        stderrBuilder.ToString()
+                    );
+                    
+                    Logger.LogPerformance($"Process {Path.GetFileName(fileName)}", duration);
+                    if (result.IsSuccess) {
+                        Logger.Log($"[ProcessExecutor] Process {Path.GetFileName(fileName)} completed successfully in {duration.TotalMilliseconds:F0}ms");
+                    } else {
+                        Logger.LogWarning($"[ProcessExecutor] Process {Path.GetFileName(fileName)} failed with exit code {result.ExitCode} after {duration.TotalMilliseconds:F0}ms");
+                    }
+                    
+                    tcs.TrySetResult(result);
+                }
+                catch (Exception ex) {
+                    Logger.LogError($"[ProcessExecutor] Exception in process exit handler: {ex.Message}");
+                    tcs.TrySetException(ex);
+                }
+                finally {
+                    if (combinedToken.CanBeCanceled)
+                        ctr.Dispose();
+                    process.Dispose();
+                }
             };
 
             try {
@@ -101,6 +146,10 @@ namespace TCS.YoutubePlayer.ProcessExecution {
                     tcs.TrySetException(
                         new YtDlpException($"Failed to start process: {fileName}")
                     );
+                    // Clean up resources since process failed to start
+                    if (combinedToken.CanBeCanceled)
+                        ctr.Dispose();
+                    process.Dispose();
                 }
                 else {
                     Logger.Log($"[ProcessExecutor] Started process: {fileName} {arguments} (PID: {process.Id})");
@@ -115,6 +164,15 @@ namespace TCS.YoutubePlayer.ProcessExecution {
                         $"Failed to start process '{Path.GetFileName(fileName)}'. Exception: {ex.Message}", ex
                     )
                 );
+                // Clean up resources since process failed to start
+                try {
+                    if (combinedToken.CanBeCanceled)
+                        ctr.Dispose();
+                    process.Dispose();
+                }
+                catch (Exception disposeEx) {
+                    Logger.LogError($"[ProcessExecutor] Exception during cleanup: {disposeEx.Message}");
+                }
             }
 
             return tcs.Task;
