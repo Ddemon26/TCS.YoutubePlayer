@@ -147,10 +147,14 @@ namespace TCS.YoutubePlayer {
                 }
 
                 // Default: Attempt to play the URL directly
-                Title = YtDlpExternalTool.GetCacheTitle( m_currentVideoUrl );
-                m_videoPlayer.source = VideoSource.Url;
-                m_videoPlayer.url = directUrlAsync;
-                m_videoPlayer.Prepare();
+                if (m_videoPlayer != null) {
+                    Title = YtDlpExternalTool.GetCacheTitle( m_currentVideoUrl );
+                    m_videoPlayer.source = VideoSource.Url;
+                    m_videoPlayer.url = directUrlAsync;
+                    m_videoPlayer.Prepare();
+                } else {
+                    Logger.LogError("[YoutubePlayer] VideoPlayer component is null, cannot play video");
+                }
             }
             catch (OperationCanceledException) {
                 Logger.LogWarning($"[YoutubePlayer] Video playback was cancelled for URL: {m_currentVideoUrl}");

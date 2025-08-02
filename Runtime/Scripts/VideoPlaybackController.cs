@@ -30,7 +30,7 @@ namespace TCS.YoutubePlayer {
         /// Toggles between play and pause states
         /// </summary>
         public void TogglePlayPause() {
-            if ( !m_player.isPrepared ) return;
+            if ( m_player == null || !m_player.isPrepared ) return;
             if ( m_player.isPlaying ) m_player.Pause();
             else m_player.Play();
         }
@@ -39,7 +39,7 @@ namespace TCS.YoutubePlayer {
         /// Stops video playback completely
         /// </summary>
         public void StopPlayback() {
-            if ( !m_player.isPrepared ) return;
+            if ( m_player == null || !m_player.isPrepared ) return;
             m_player.Stop();
         }
 
@@ -48,11 +48,14 @@ namespace TCS.YoutubePlayer {
         /// </summary>
         /// <param name="seconds">Time position in seconds</param>
         public async void SeekAbsolute(float seconds) {
-            if ( !m_player.canSetTime ) return;
+            if ( m_player == null || !m_player.canSetTime ) return;
             await SeekAsync( seconds );
         }
 
-        public void SeekRelative(float deltaSeconds) => SeekAbsolute( (float)m_player.time + deltaSeconds );
+        public void SeekRelative(float deltaSeconds) {
+            if (m_player == null) return;
+            SeekAbsolute( (float)m_player.time + deltaSeconds );
+        }
 
         public void SkipForward(float seconds = 10f) => SeekRelative( +seconds );
         public void SkipBackward(float seconds = 10f) => SeekRelative( -seconds );

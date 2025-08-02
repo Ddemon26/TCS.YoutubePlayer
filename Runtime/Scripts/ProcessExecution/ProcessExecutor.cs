@@ -66,9 +66,10 @@ namespace TCS.YoutubePlayer.ProcessExecution {
             
             // Set up timeout if specified
             using var timeoutCts = timeout.HasValue ? new CancellationTokenSource(timeout.Value) : null;
-            var combinedToken = timeoutCts != null 
-                ? CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutCts.Token).Token
-                : cancellationToken;
+            using var linkedCts = timeoutCts != null 
+                ? CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutCts.Token)
+                : null;
+            var combinedToken = linkedCts?.Token ?? cancellationToken;
 
             if (combinedToken.CanBeCanceled) {
                 ctr = combinedToken.Register(() => {

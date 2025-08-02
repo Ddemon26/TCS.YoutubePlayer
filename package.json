@@ -1,8 +1,8 @@
 {
   "name": "tcs.youtubeplayer",
   "displayName": "TCS-YoutubePlayer",
-  "description": "A simple Youtube player for Tent City Studio",
-  "version": "0.0.1",
+  "description": "A comprehensive Unity package for YouTube video playback with streaming and download capabilities, featuring robust process execution, caching, and cross-platform support",
+  "version": "1.0.0",
   "keywords": ["TCS", "Damon's Mod"],
   "category": "Tent City Studio",
   "dependencies": {},
