@@ -11,6 +11,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TCS.YoutubePlayer;
 using System.Collections;
+using System.Threading.Tasks;
 
 public class BasicYoutubePlayer : MonoBehaviour
 {
@@ -40,6 +41,30 @@ public class BasicYoutubePlayer : MonoBehaviour
         // Set default URL
         if (urlInput != null)
             urlInput.text = defaultUrl;
+            
+        // Start monitoring initialization status
+        StartCoroutine(MonitorInitializationStatus());
+    }
+    
+    private IEnumerator MonitorInitializationStatus()
+    {
+        while (!youtubePlayer.IsInitialized && !youtubePlayer.InitializationFailed)
+        {
+            UpdateStatus("Initializing external tools...");
+            yield return new WaitForSeconds(0.5f);
+        }
+        
+        if (youtubePlayer.InitializationFailed)
+        {
+            UpdateStatus("Initialization failed - video playback unavailable");
+            UpdateButtonStates(false);
+        }
+        else
+        {
+            UpdateStatus("Ready - Enter a YouTube URL to play");
+            if (playButton != null)
+                playButton.interactable = true;
+        }
     }
     
     void SetupUI()
@@ -71,7 +96,12 @@ public class BasicYoutubePlayer : MonoBehaviour
         }
         
         UpdateButtonStates(false);
-        UpdateStatus("Ready");
+        
+        // Disable play button initially until initialization completes
+        if (playButton != null)
+            playButton.interactable = false;
+            
+        UpdateStatus("Initializing...");
     }
     
     void SetupPlayerEvents()
@@ -88,7 +118,7 @@ public class BasicYoutubePlayer : MonoBehaviour
     
     #region Button Events
     
-    public void OnPlayClicked()
+    public async void OnPlayClicked()
     {
         if (youtubePlayer == null || urlInput == null) return;
         
@@ -99,8 +129,46 @@ public class BasicYoutubePlayer : MonoBehaviour
             return;
         }
         
+        // Check initialization state before playing
+        if (!youtubePlayer.IsInitialized)
+        {
+            if (youtubePlayer.InitializationFailed)
+            {
+                UpdateStatus("Cannot play video - initialization failed");
+                return;
+            }
+            
+            UpdateStatus("Waiting for initialization to complete...");
+            
+            // Wait for initialization with timeout
+            bool initialized = await WaitForInitialization(timeoutSeconds: 30);
+            if (!initialized)
+            {
+                UpdateStatus("Initialization timeout - please restart the application");
+                return;
+            }
+        }
+        
         UpdateStatus("Loading video...");
         youtubePlayer.PlayVideo(url);
+    }
+    
+    private async Task<bool> WaitForInitialization(int timeoutSeconds = 30)
+    {
+        var timeout = TimeSpan.FromSeconds(timeoutSeconds);
+        var startTime = System.DateTime.UtcNow;
+        
+        while (!youtubePlayer.IsInitialized && !youtubePlayer.InitializationFailed)
+        {
+            if (System.DateTime.UtcNow - startTime > timeout)
+            {
+                return false;
+            }
+            
+            await Task.Delay(100);
+        }
+        
+        return youtubePlayer.IsInitialized;
     }
     
     public void OnPauseClicked()
@@ -330,6 +398,49 @@ Create a Canvas with the following UI elements:
 2. **Assign References**
    - Drag UI elements to the script's serialized fields
    - Ensure YoutubePlayer prefab is assigned
+
+## Key Implementation Details
+
+### Initialization State Management
+
+The example demonstrates proper handling of YoutubePlayer initialization:
+
+1. **Monitor Initialization**: The `MonitorInitializationStatus()` coroutine continuously checks the initialization state
+2. **Disable Controls**: Play button is disabled until initialization completes
+3. **User Feedback**: Status updates inform the user about initialization progress
+4. **Error Handling**: Initialization failures are properly handled and communicated
+
+### Safe Video Playback
+
+The `OnPlayClicked()` method includes comprehensive safety checks:
+
+```csharp
+// Check initialization state before attempting playback
+if (!youtubePlayer.IsInitialized)
+{
+    if (youtubePlayer.InitializationFailed)
+    {
+        // Handle initialization failure
+        return;
+    }
+    
+    // Wait for initialization with timeout
+    bool initialized = await WaitForInitialization(timeoutSeconds: 30);
+    if (!initialized)
+    {
+        // Handle timeout scenario
+        return;
+    }
+}
+```
+
+### Initialization Best Practices
+
+1. **Always check `IsInitialized` before video operations**
+2. **Handle `InitializationFailed` state appropriately**
+3. **Provide user feedback during initialization**
+4. **Implement timeout handling for initialization waits**
+5. **Disable UI controls until ready**
 
 ## Advanced Features
 

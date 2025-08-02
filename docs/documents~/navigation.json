@@ -22,6 +22,9 @@
         "title": "Components",
         "items": [
             { "title": "Components Overview", "path": "documents~/components/overview.md" },
+            { "title": "ProcessExecutor", "path": "documents~/components/process-executor.md" },
+            { "title": "Error Handling", "path": "documents~/components/error-handling.md" },
+            { "title": "Performance Monitoring", "path": "documents~/components/performance-monitoring.md" },
             { "title": "Caching System", "path": "documents~/components/caching.md" },
             { "title": "Configuration", "path": "documents~/components/configuration.md" },
             { "title": "Process Execution", "path": "documents~/components/process-execution.md" },

@@ -67,6 +67,37 @@ public class ToolManager
 }
 ```
 
+### Process Execution System
+
+The ProcessExecutor provides robust external process management with enhanced capabilities:
+
+- **Timeout Support**: Optional timeout parameter for process execution
+- **Performance Monitoring**: Automatic execution time tracking and logging
+- **Enhanced Cancellation**: Differentiation between timeout and user cancellation
+- **Resource Management**: Proper disposal patterns preventing resource leaks
+
+```csharp
+public class ProcessExecutor : IDisposable
+{
+    // Enhanced method with timeout support
+    public Task<ProcessResult> RunProcessAsync(
+        string fileName,
+        string arguments,
+        CancellationToken cancellationToken,
+        TimeSpan? timeout = null
+    );
+    
+    // Example usage with timeout
+    // var result = await executor.RunProcessAsync("yt-dlp", args, token, TimeSpan.FromMinutes(5));
+}
+```
+
+**Key Enhancements:**
+- **Timeout Handling**: Processes can be automatically terminated after a specified duration
+- **Performance Metrics**: Execution time is automatically logged for monitoring
+- **Smart Cancellation**: System differentiates between timeout and user-initiated cancellation
+- **Resource Cleanup**: Enhanced disposal patterns ensure no resource leaks
+
 ### URL Processing Pipeline
 
 Converts YouTube URLs into playable video streams:
@@ -193,22 +224,89 @@ The system implements several error recovery mechanisms:
 - **Tool Redownload**: Automatic tool reacquisition if corrupted
 - **Cache Invalidation**: Clearing bad cache entries
 
+### Enhanced Error Handling
+
+Recent improvements include sophisticated error handling with clear differentiation between error types:
+
+#### Timeout vs Cancellation
+The system now differentiates between timeouts and user-initiated cancellations:
+
+```csharp
+// In ProcessExecutor, timeout and cancellation are handled differently
+if (timeoutCts?.Token.IsCancellationRequested == true) {
+    tcs.TrySetException(new TimeoutException($"Process {fileName} timed out after {timeout}"));
+} else {
+    tcs.TrySetCanceled(cancellationToken);
+}
+```
+
+#### Error Types and Handling
+- **TimeoutException**: Thrown when processes exceed their timeout duration
+- **OperationCanceledException**: Thrown for user-initiated cancellations
+- **YtDlpException**: Thrown for tool-specific errors
+- **NetworkException**: Thrown for network-related failures
+
+#### Logging and Diagnostics
+Enhanced logging provides clear information about error causes:
+
+```csharp
+string reason = timeoutCts?.Token.IsCancellationRequested == true 
+    ? "timeout" 
+    : "cancellation";
+Logger.LogWarning($"Killed process {fileName} due to {reason}.");
+```
+
 ## Performance Considerations
 
 ### Memory Management
 - **Texture Streaming**: Efficient video texture handling
 - **Cache Limits**: Configurable memory usage bounds
 - **Resource Cleanup**: Proper disposal of video resources
+- **Process Resource Management**: Enhanced disposal patterns prevent resource leaks
 
 ### Network Optimization
 - **Connection Pooling**: Reuse HTTP connections
 - **Compression**: Efficient data transfer
 - **Parallel Downloads**: Concurrent tool acquisition
+- **Timeout Management**: Prevents indefinite waits on network operations
 
 ### Threading
 - **Main Thread Protection**: UI operations on main thread only
 - **Background Processing**: Heavy operations on worker threads
 - **Async Coordination**: Proper async/await usage
+
+### Performance Monitoring
+
+The system includes comprehensive performance monitoring capabilities:
+
+#### Automatic Performance Logging
+```csharp
+// ProcessExecutor automatically logs execution times
+Logger.LogPerformance($"Process {fileName}", duration);
+// Example output: "[PERF] yt-dlp took 1247.50ms"
+```
+
+#### Key Metrics Tracked
+- **Process Execution Times**: All external tool invocations are timed
+- **Initialization Duration**: Tool download and setup timing
+- **Video Processing Performance**: URL processing and conversion times
+- **Resource Usage**: Memory and process cleanup timing
+
+#### Performance Best Practices
+- Use timeout parameters to prevent indefinite blocking
+- Monitor logs for performance bottlenecks
+- Implement appropriate caching strategies
+- Handle initialization state properly to avoid redundant operations
+
+```csharp
+// Example: Using timeout to prevent long-running operations
+var result = await processExecutor.RunProcessAsync(
+    "yt-dlp", 
+    arguments, 
+    cancellationToken, 
+    TimeSpan.FromMinutes(5) // 5-minute timeout
+);
+```
 
 ## Extension Points
 

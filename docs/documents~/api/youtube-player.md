@@ -51,6 +51,35 @@ Gets or sets whether videos should loop when they reach the end.
 
 ### State Properties
 
+#### `IsInitialized`
+```csharp
+public bool IsInitialized { get; }
+```
+Gets a value indicating whether the external tools (yt-dlp and FFmpeg) have been successfully initialized. This property should be checked before attempting video playback operations.
+
+**Usage Example:**
+```csharp
+if (player.IsInitialized && !player.InitializationFailed)
+{
+    await player.PlayVideo("https://www.youtube.com/watch?v=dQw4w9WgXcQ");
+}
+```
+
+#### `InitializationFailed`
+```csharp
+public bool InitializationFailed { get; }
+```
+Gets a value indicating whether initialization of external tools has failed. When true, video playback operations will not be available until the system is reinitialized.
+
+**Usage Example:**
+```csharp
+if (player.InitializationFailed)
+{
+    Debug.LogError("YoutubePlayer initialization failed. Video playback unavailable.");
+    // Handle initialization failure (retry, show error UI, etc.)
+}
+```
+
 #### `IsPlaying`
 ```csharp
 public bool IsPlaying { get; }
@@ -396,6 +425,61 @@ void Update()
 }
 ```
 
+## Initialization Lifecycle
+
+The YoutubePlayer component follows a specific initialization lifecycle that must be understood for proper usage:
+
+### Initialization Process
+1. **Component Creation**: When the YoutubePlayer component is created (Awake), it begins initializing external tools asynchronously
+2. **Tool Download**: If not present, yt-dlp and FFmpeg are downloaded automatically
+3. **Validation**: Tools are validated and version checks are performed
+4. **Ready State**: `IsInitialized` becomes true when ready for video playback
+
+### Best Practices
+
+#### Check Initialization State
+```csharp
+public async void PlayVideoSafely(string url)
+{
+    // Wait for initialization if still in progress
+    while (!youtubePlayer.IsInitialized && !youtubePlayer.InitializationFailed)
+    {
+        await Task.Delay(100);
+    }
+    
+    if (youtubePlayer.InitializationFailed)
+    {
+        Debug.LogError("Cannot play video: initialization failed");
+        return;
+    }
+    
+    // Safe to play video
+    youtubePlayer.PlayVideo(url);
+}
+```
+
+#### Handle Initialization Timeout
+```csharp
+public async Task<bool> WaitForInitialization(int timeoutSeconds = 30)
+{
+    var timeout = TimeSpan.FromSeconds(timeoutSeconds);
+    var startTime = DateTime.UtcNow;
+    
+    while (!youtubePlayer.IsInitialized && !youtubePlayer.InitializationFailed)
+    {
+        if (DateTime.UtcNow - startTime > timeout)
+        {
+            Debug.LogWarning("YoutubePlayer initialization timeout");
+            return false;
+        }
+        
+        await Task.Delay(100);
+    }
+    
+    return youtubePlayer.IsInitialized;
+}
+```
+
 ## Thread Safety
 
 All public methods and properties are thread-safe and can be called from any thread. However, Unity-specific operations will be automatically marshaled to the main thread.
@@ -406,6 +490,8 @@ All public methods and properties are thread-safe and can be called from any thr
 - Progress events are throttled to avoid excessive updates
 - Caching reduces repeated network requests for the same videos
 - Memory usage is optimized for mobile and desktop platforms
+- Performance metrics are automatically logged for process execution times
+- Tool initialization includes timeout handling to prevent indefinite waits
 
 ## See Also
 
