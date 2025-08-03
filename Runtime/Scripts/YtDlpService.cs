@@ -29,7 +29,7 @@ namespace TCS.YoutubePlayer {
             m_configManager = new YtDlpConfigurationManager();
             m_urlProcessor = new YouTubeUrlProcessor();
             m_urlCache = new YtDlpUrlCache(m_urlProcessor);
-            m_processExecutor = new ProcessExecutor(m_configManager.GetFFmpegPath());
+            m_processExecutor = new ProcessExecutor(YtDlpConfigurationManager.GetFFmpegPath());
             m_mp4Converter = new Mp4Converter(m_processExecutor, m_urlProcessor);
         }
 
@@ -80,7 +80,7 @@ namespace TCS.YoutubePlayer {
             string arguments = string.Format(YT_DLP_TITLE_ARGS_FORMAT, YouTubeUrlProcessor.SanitizeForShell(trimUrl)) + cookieArg;
 
             var result = await m_processExecutor.RunProcessAsync(
-                m_configManager.GetYtDlpPath(), 
+                YtDlpConfigurationManager.GetYtDlpPath(), 
                 arguments, 
                 cancellationToken
             );

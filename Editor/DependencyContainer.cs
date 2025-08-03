@@ -1,4 +1,5 @@
 [UxmlElement] public partial class DependencyContainer : VisualElement {
+    #region Class Names
     public static readonly string ClassNameUSS = "dependency-container";
 
     public static readonly string RootUSS = ClassNameUSS + "_root"; // dependency-container_root 
@@ -19,6 +20,7 @@
     public static readonly string InstallButtonUSS = ClassNameUSS + "_install-button"; // dependency-container_install-button 
     public static readonly string UpdateButtonUSS = ClassNameUSS + "_update-button"; // dependency-container_update-button 
     public static readonly string UninstallButtonUSS = ClassNameUSS + "_uninstall-button"; // dependency-container_uninstall-button 
+    #endregion
 
     #region UI Elements
     readonly VisualElement m_root = new() { name = "Root" };
@@ -41,6 +43,13 @@
     readonly Button m_uninstallButton = new() { name = "UninstallButton" };
     #endregion
 
+    #region Actions
+    public Action OnInstallButtonClicked;
+    public Action OnUpdateButtonClicked;
+    public Action OnUninstallButtonClicked;
+    #endregion
+
+    #region Constructor
     public DependencyContainer() {
         SetElementClassNames();
 
@@ -50,7 +59,7 @@
         m_informationLabel.text = "Ytl-dip is used for converting url into unity playable videos.";
         m_installedLabel.text = "Installed:";
         m_versionLabel.text = "Current Version:";
-        m_versionValueLabel.text = "1.0.0";
+        m_versionValueLabel.text = "Unknown";
         m_installButton.text = "Install";
         m_updateButton.text = "Update";
         m_uninstallButton.text = "Uninstall";
@@ -74,9 +83,12 @@
         m_insallContainer.Add( m_installButton );
         m_insallContainer.Add( m_updateButton );
         m_insallContainer.Add( m_uninstallButton );
+        
+        m_informationFoldout.value = false;
+        SetInstallTextureResult( false );
     }
     
-    public void SetElementClassNames() {
+    void SetElementClassNames() {
         AddToClassList( ClassNameUSS );
         m_root.AddToClassList( RootUSS );
         m_headerContainer.AddToClassList( HeaderContainerUSS );
@@ -97,4 +109,31 @@
         m_updateButton.AddToClassList( UpdateButtonUSS );
         m_uninstallButton.AddToClassList( UninstallButtonUSS );
     }
+    #endregion
+
+    #region Callbacks
+    public void RegisterCallbacks() {
+        m_installButton.clicked += InstallPressed;
+        m_updateButton.clicked += UpdatePressed;
+        m_uninstallButton.clicked += UninstalledPressed;
+    }
+    void UninstalledPressed() => OnUninstallButtonClicked?.Invoke();
+    void UpdatePressed() => OnUpdateButtonClicked?.Invoke();
+    void InstallPressed() => OnInstallButtonClicked?.Invoke();
+
+    public void UnregisterCallbacks() {
+        m_installButton.clicked -= InstallPressed;
+        m_updateButton.clicked -= UpdatePressed;
+        m_uninstallButton.clicked -= UninstalledPressed;
+    }
+    #endregion
+
+    #region Public API
+    public void SetInstallTextureResult(bool isInstalled)
+        => m_installTexture.style.unityBackgroundImageTintColor = isInstalled ? new StyleColor(Color.green) : new StyleColor(Color.red);
+
+    public void SetHeaderText(string header) => m_header.text = header;
+    public void SetInformationText(string info) => m_informationLabel.text = info;
+    public void SetVersionValue(string version) => m_versionValueLabel.text = version;
+    #endregion
 }

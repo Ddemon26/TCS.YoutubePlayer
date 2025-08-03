@@ -92,7 +92,7 @@ namespace TCS.YoutubePlayer.ToolManagement {
 
             Logger.Log("[ToolDownloadManager] Downloading yt-dlp...");
             
-            // Only download for Windows platform for now
+            // Only download for Windows platforms for now
             if (Application.platform == RuntimePlatform.WindowsPlayer || Application.platform == RuntimePlatform.WindowsEditor) {
                 await DownloadFileAsync(YT_DLP_WINDOWS_URL, ytDlpPath, cancellationToken);
                 UpdateToolVersion("yt-dlp", "latest", ytDlpPath);

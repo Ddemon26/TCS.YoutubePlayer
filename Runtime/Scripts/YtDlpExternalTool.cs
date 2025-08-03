@@ -4,11 +4,9 @@ namespace TCS.YoutubePlayer {
     public static class YtDlpExternalTool {
         static readonly YtDlpService Service = new();
 
-        static YtDlpExternalTool()
-            => Application.quitting += () => Service?.Dispose();
+        static YtDlpExternalTool() => Application.quitting += () => Service?.Dispose();
 
-        public static string GetCacheTitle(string videoUrl) => 
-            Service.GetCacheTitle(videoUrl);
+        public static string GetCacheTitle(string videoUrl) => Service.GetCacheTitle(videoUrl);
 
         public static Task<string> GetDirectUrlAsync(string videoUrl, CancellationToken cancellationToken) =>
             Service.GetDirectUrlAsync(videoUrl, cancellationToken);
