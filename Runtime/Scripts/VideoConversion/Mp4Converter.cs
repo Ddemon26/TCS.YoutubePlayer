@@ -48,17 +48,21 @@ namespace TCS.YoutubePlayer.VideoConversion {
             }
         }
 
-        string PrepareOutputDirectory(string hlsUrl) {
+        static string PrepareOutputDirectory(string hlsUrl) {
             Directory.CreateDirectory(Path.Combine(Application.persistentDataPath, "Streaming"));
             string uniqueFileName = SanitizeUrlToFileName(hlsUrl) + ".mp4";
             return Path.Combine(Application.persistentDataPath, "Streaming", uniqueFileName);
         }
 
         Task CleanupOldCacheEntriesAsync() {
-            if (m_mp4ConversionCache.Count < MP4_CACHE_LIMIT) return Task.CompletedTask;
+            if (m_mp4ConversionCache.Count < MP4_CACHE_LIMIT) {
+                return Task.CompletedTask;
+            }
 
             KeyValuePair<string, Mp4ConversionEntry> oldestKeyValue = m_mp4ConversionCache.OrderBy(kvp => kvp.Value.CreatedAtUtc).FirstOrDefault();
-            if (string.IsNullOrEmpty(oldestKeyValue.Key)) return Task.CompletedTask;
+            if (string.IsNullOrEmpty(oldestKeyValue.Key)) {
+                return Task.CompletedTask;
+            }
 
             if (m_mp4ConversionCache.TryRemove(oldestKeyValue.Key, out var removedEntry)) {
                 try {
@@ -83,8 +87,8 @@ namespace TCS.YoutubePlayer.VideoConversion {
                 File.Delete(outputFilePath);
             }
 
-            string sanitizedHlsUrl = m_urlProcessor.SanitizeForShell(hlsUrl);
-            string sanitizedOutputPath = m_urlProcessor.SanitizeForShell(outputFilePath);
+            string sanitizedHlsUrl = YouTubeUrlProcessor.SanitizeForShell(hlsUrl);
+            string sanitizedOutputPath = YouTubeUrlProcessor.SanitizeForShell(outputFilePath);
             
             var result = await m_processExecutor.RunProcessAsync(
                 "ffmpeg", 

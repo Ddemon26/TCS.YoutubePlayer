@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Net.Http;
@@ -33,7 +32,7 @@ namespace TCS.YoutubePlayer.ToolManagement {
             
             try {
                 string json = File.ReadAllText(versionFilePath);
-                var versionInfo = JsonConvert.DeserializeObject<Dictionary<string, ToolVersionInfo>>(json);
+                Dictionary<string, ToolVersionInfo> versionInfo = JsonConvert.DeserializeObject<Dictionary<string, ToolVersionInfo>>(json);
                 
                 if (!versionInfo.TryGetValue( toolName, out var toolInfo )) {
                     return true; // Tool not tracked, update needed

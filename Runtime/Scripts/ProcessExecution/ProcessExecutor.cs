@@ -1,4 +1,3 @@
-using System;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
@@ -11,9 +10,8 @@ namespace TCS.YoutubePlayer.ProcessExecution {
     public class ProcessExecutor : IDisposable {
         string m_ffmpegPath;
 
-        public ProcessExecutor(string ffmpegPath) {
-            m_ffmpegPath = ffmpegPath;
-        }
+        public ProcessExecutor(string ffmpegPath)
+            => m_ffmpegPath = ffmpegPath;
 
         public void UpdateFFmpegPath(string ffmpegPath) {
             m_ffmpegPath = ffmpegPath;
@@ -22,7 +20,7 @@ namespace TCS.YoutubePlayer.ProcessExecution {
         /// <summary>
         /// Runs an external process asynchronously with optional timeout support
         /// </summary>
-        /// <param name="fileName">Path to executable file</param>
+        /// <param name="fileName">Path to an executable file</param>
         /// <param name="arguments">Command line arguments</param>
         /// <param name="cancellationToken">Cancellation token</param>
         /// <param name="timeout">Optional timeout for process execution</param>
@@ -33,10 +31,14 @@ namespace TCS.YoutubePlayer.ProcessExecution {
             CancellationToken cancellationToken,
             TimeSpan? timeout = null
         ) {
-            if (string.IsNullOrWhiteSpace(fileName))
+            if (string.IsNullOrWhiteSpace(fileName)) {
                 throw new ArgumentException("File name cannot be null or empty", nameof(fileName));
-            if (arguments == null)
+            }
+
+            if (arguments == null) {
                 throw new ArgumentNullException(nameof(arguments));
+            }
+
             // For ffmpeg commands, resolve the full path
             if (fileName == "ffmpeg" && !string.IsNullOrEmpty(m_ffmpegPath)) {
                 fileName = m_ffmpegPath;
@@ -101,13 +103,15 @@ namespace TCS.YoutubePlayer.ProcessExecution {
             }
 
             process.OutputDataReceived += (_, e) => {
-                if (e.Data != null)
+                if (e.Data != null) {
                     stdoutBuilder.AppendLine(e.Data);
+                }
             };
             
             process.ErrorDataReceived += (_, e) => {
-                if (e.Data != null)
+                if (e.Data != null) {
                     stderrBuilder.AppendLine(e.Data);
+                }
             };
 
             process.Exited += (_, _) => {
@@ -133,23 +137,28 @@ namespace TCS.YoutubePlayer.ProcessExecution {
                     tcs.TrySetException(ex);
                 }
                 finally {
-                    if (combinedToken.CanBeCanceled)
+                    if (combinedToken.CanBeCanceled) {
                         ctr.Dispose();
+                    }
+
                     process.Dispose();
                 }
             };
 
             try {
-                if (!File.Exists(fileName))
+                if (!File.Exists(fileName)) {
                     throw new YtDlpException($"Executable not found: {fileName}");
+                }
 
                 if (!process.Start()) {
                     tcs.TrySetException(
                         new YtDlpException($"Failed to start process: {fileName}")
                     );
-                    // Clean up resources since process failed to start
-                    if (combinedToken.CanBeCanceled)
+                    // Clean up resources since the process failed to start
+                    if (combinedToken.CanBeCanceled) {
                         ctr.Dispose();
+                    }
+
                     process.Dispose();
                 }
                 else {
@@ -165,10 +174,12 @@ namespace TCS.YoutubePlayer.ProcessExecution {
                         $"Failed to start process '{Path.GetFileName(fileName)}'. Exception: {ex.Message}", ex
                     )
                 );
-                // Clean up resources since process failed to start
+                // Clean up resources since the process failed to start
                 try {
-                    if (combinedToken.CanBeCanceled)
+                    if (combinedToken.CanBeCanceled) {
                         ctr.Dispose();
+                    }
+
                     process.Dispose();
                 }
                 catch (Exception disposeEx) {

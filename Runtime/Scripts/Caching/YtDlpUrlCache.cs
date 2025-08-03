@@ -1,11 +1,10 @@
-using System;
 using System.Collections.Concurrent;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
-using UnityEngine;
 using TCS.YoutubePlayer.UrlProcessing;
+using UnityEditor;
 using Logger = TCS.YoutubePlayer.Utils.Logger;
 
 namespace TCS.YoutubePlayer.Caching {
@@ -22,8 +21,8 @@ namespace TCS.YoutubePlayer.Caching {
             #if !UNITY_EDITOR
             Application.quitting += SaveCacheToFile;
             #else
-            UnityEditor.EditorApplication.playModeStateChanged += state => {
-                if (state == UnityEditor.PlayModeStateChange.ExitingPlayMode) {
+            EditorApplication.playModeStateChanged += state => {
+                if (state == PlayModeStateChange.ExitingPlayMode) {
                     SaveCacheToFile();
                 }
             };
@@ -41,7 +40,9 @@ namespace TCS.YoutubePlayer.Caching {
 
         public bool TryGetCachedEntry(string videoUrl, out CacheEntry entry) {
             entry = null;
-            if (string.IsNullOrWhiteSpace(videoUrl)) return false;
+            if (string.IsNullOrWhiteSpace(videoUrl)) {
+                return false;
+            }
 
             string cacheKey = ExtractVideoIdOrUrl(videoUrl);
             
@@ -53,7 +54,9 @@ namespace TCS.YoutubePlayer.Caching {
         }
 
         public void AddToCache(string videoUrl, string directUrl, string title, DateTime? expiresAt = null) {
-            if (string.IsNullOrWhiteSpace(videoUrl) || string.IsNullOrWhiteSpace(directUrl)) return;
+            if (string.IsNullOrWhiteSpace(videoUrl) || string.IsNullOrWhiteSpace(directUrl)) {
+                return;
+            }
 
             string cacheKey = ExtractVideoIdOrUrl(videoUrl);
             var expiry = expiresAt ?? DateTime.UtcNow.Add(m_defaultCacheExpiration);
@@ -68,12 +71,14 @@ namespace TCS.YoutubePlayer.Caching {
                     Dictionary<string, CacheEntry> loadedEntries = JsonConvert.DeserializeObject<Dictionary<string, CacheEntry>>(json);
 
                     if (loadedEntries != null) {
-                        int loadedCount = 0;
+                        var loadedCount = 0;
                         foreach (KeyValuePair<string, CacheEntry> kvp in loadedEntries) {
-                            if (DateTime.UtcNow < kvp.Value.ExpiresAt) {
-                                if (m_cache.TryAdd(kvp.Key, kvp.Value)) {
-                                    loadedCount++;
-                                }
+                            if ( DateTime.UtcNow >= kvp.Value.ExpiresAt ) {
+                                continue;
+                            }
+
+                            if (m_cache.TryAdd(kvp.Key, kvp.Value)) {
+                                loadedCount++;
                             }
                         }
 
@@ -101,10 +106,12 @@ namespace TCS.YoutubePlayer.Caching {
                     Logger.Log($"[UrlCache] Saved {entriesToSave.Count} cache entries to: `{m_cacheFilePath}`");
                 }
                 else {
-                    if (File.Exists(m_cacheFilePath)) {
-                        File.Delete(m_cacheFilePath);
-                        Logger.Log($"[UrlCache] No valid cache entries to save. Deleted existing cache file: `{m_cacheFilePath}`");
+                    if ( !File.Exists( m_cacheFilePath ) ) {
+                        return;
                     }
+
+                    File.Delete(m_cacheFilePath);
+                    Logger.Log($"[UrlCache] No valid cache entries to save. Deleted existing cache file: `{m_cacheFilePath}`");
                 }
             }
             catch (Exception ex) {
@@ -112,9 +119,8 @@ namespace TCS.YoutubePlayer.Caching {
             }
         }
 
-        string ExtractVideoIdOrUrl(string videoUrl) {
-            return m_urlProcessor.TryExtractVideoId(videoUrl) ?? videoUrl;
-        }
+        string ExtractVideoIdOrUrl(string videoUrl)
+            => m_urlProcessor.TryExtractVideoId(videoUrl) ?? videoUrl;
 
         public void Dispose() {
             SaveCacheToFile();

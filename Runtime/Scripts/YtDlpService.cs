@@ -37,17 +37,17 @@ namespace TCS.YoutubePlayer {
             Logger.Log("[YtDlpService] Initializing external tools...");
             
             try {
-                var ytDlpTask = m_configManager.EnsureYtDlpAsync(cancellationToken);
-                var ffmpegTask = m_configManager.EnsureFFmpegAsync(cancellationToken);
+                Task<string> ytDlpTask = m_configManager.EnsureYtDlpAsync(cancellationToken);
+                Task<string> ffmpegTask = m_configManager.EnsureFFmpegAsync(cancellationToken);
                 
                 await Task.WhenAll(ytDlpTask, ffmpegTask);
                 
                 string ytDlpPath = await ytDlpTask;
                 string ffmpegPath = await ffmpegTask;
                 
-                Logger.Log($"[YtDlpService] Tools initialized successfully:");
-                Logger.Log($"  yt-dlp: {ytDlpPath}");
-                Logger.Log($"  ffmpeg: {ffmpegPath}");
+                Logger.Log("[YtDlpService] Tools initialized successfully:");
+                Logger.Log($"[YtDlpService] yt-dlp: {ytDlpPath}");
+                Logger.Log($"[YtDlpService] ffmpeg: {ffmpegPath}");
             }
             catch (Exception ex) {
                 Logger.LogError($"[YtDlpService] Failed to initialize external tools: {ex.Message}");
@@ -59,9 +59,9 @@ namespace TCS.YoutubePlayer {
 
         public async Task<string> GetDirectUrlAsync(string videoUrl, CancellationToken cancellationToken) {
             await m_configManager.EnsureYtDlpAsync(cancellationToken);
-            m_urlProcessor.ValidateUrl(videoUrl);
+            YouTubeUrlProcessor.ValidateUrl(videoUrl);
 
-            string trimUrl = m_urlProcessor.TrimYouTubeUrl(videoUrl);
+            string trimUrl = YouTubeUrlProcessor.TrimYouTubeUrl(videoUrl);
             string cacheKey = m_urlProcessor.TryExtractVideoId(videoUrl) ?? videoUrl;
 
             if (m_urlCache.TryGetCachedEntry(cacheKey, out var existingEntry)) {
@@ -76,8 +76,8 @@ namespace TCS.YoutubePlayer {
                 );
             }
 
-            var cookieArg = $" --cookies-from-browser \"{m_urlProcessor.SanitizeForShell(BROWSER_FOR_COOKIES)}\"";
-            string arguments = string.Format(YT_DLP_TITLE_ARGS_FORMAT, m_urlProcessor.SanitizeForShell(trimUrl)) + cookieArg;
+            var cookieArg = $" --cookies-from-browser \"{YouTubeUrlProcessor.SanitizeForShell(BROWSER_FOR_COOKIES)}\"";
+            string arguments = string.Format(YT_DLP_TITLE_ARGS_FORMAT, YouTubeUrlProcessor.SanitizeForShell(trimUrl)) + cookieArg;
 
             var result = await m_processExecutor.RunProcessAsync(
                 m_configManager.GetYtDlpPath(), 
@@ -106,7 +106,7 @@ namespace TCS.YoutubePlayer {
                 throw new YtDlpException($"yt-dlp returned an invalid direct URL: {directUrl}");
             }
             
-            DateTime? expiresAt = m_urlProcessor.ParseExpiryFromUrl(directUrl);
+            DateTime? expiresAt = YouTubeUrlProcessor.ParseExpiryFromUrl(directUrl);
             m_urlCache.AddToCache(videoUrl, directUrl, title, expiresAt);
 
             return directUrl;
@@ -180,7 +180,7 @@ namespace TCS.YoutubePlayer {
             }
 
             Logger.LogWarning(
-                $"[YtDlpService] yt-dlp --update finished with exit code 0 but did not explicitly report an update. " +
+                "[YtDlpService] yt-dlp --update finished with exit code 0 but did not explicitly report an update. " +
                 "Assuming it is already up to date.\n" +
                 $"Stdout: {stdout}"
             );
@@ -250,7 +250,10 @@ namespace TCS.YoutubePlayer {
         }
 
         static bool ContainsUpToDateMessage(string text) {
-            if (string.IsNullOrEmpty(text)) return false;
+            if (string.IsNullOrEmpty(text)) {
+                return false;
+            }
+
             return text.Contains("is already the newest version", StringComparison.OrdinalIgnoreCase)
                    || text.Contains("is up to date", StringComparison.OrdinalIgnoreCase);
         }

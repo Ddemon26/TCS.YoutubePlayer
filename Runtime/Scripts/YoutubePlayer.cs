@@ -1,7 +1,5 @@
-using System;
 using System.Threading;
 using System.Threading.Tasks;
-using UnityEngine;
 using UnityEngine.Video;
 using Logger = TCS.YoutubePlayer.Utils.Logger;
 
@@ -33,8 +31,8 @@ namespace TCS.YoutubePlayer {
         string m_currentVideoUrl; // To store the original URL, we attempted to play
         readonly CancellationTokenSource m_cts = new();
 
-        bool m_isInitialized = false;
-        bool m_initializationFailed = false;
+        bool m_isInitialized;
+        bool m_initializationFailed;
 
         void Awake() {
             try {
@@ -107,9 +105,9 @@ namespace TCS.YoutubePlayer {
                         if (m_initializationFailed) {
                             Logger.LogError("[YoutubePlayer] Initialization failed. Cannot play video.");
                             return;
-                        } else {
-                            Logger.LogWarning("[YoutubePlayer] Initialization timeout, proceeding anyway...");
                         }
+
+                        Logger.LogWarning("[YoutubePlayer] Initialization timeout, proceeding anyway...");
                     }
                 }
 

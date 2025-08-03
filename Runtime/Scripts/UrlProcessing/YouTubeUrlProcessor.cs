@@ -1,6 +1,5 @@
 using System.Text.RegularExpressions;
 using TCS.YoutubePlayer.Exceptions;
-
 namespace TCS.YoutubePlayer.UrlProcessing {
     public class YouTubeUrlProcessor {
         readonly Regex m_youTubeIdRegex = new(
@@ -8,7 +7,7 @@ namespace TCS.YoutubePlayer.UrlProcessing {
             RegexOptions.Compiled | RegexOptions.IgnoreCase
         );
 
-        public void ValidateUrl(string videoUrl) {
+        public static void ValidateUrl(string videoUrl) {
             if (string.IsNullOrWhiteSpace(videoUrl)) {
                 throw new InvalidYouTubeUrlException(
                     "Video URL cannot be null or empty.",
@@ -17,20 +16,22 @@ namespace TCS.YoutubePlayer.UrlProcessing {
             }
         }
 
-        public string TrimYouTubeUrl(string url) {
-            if (string.IsNullOrWhiteSpace(url))
+        public static string TrimYouTubeUrl(string url) {
+            if (string.IsNullOrWhiteSpace(url)) {
                 return url;
+            }
 
             var match = Regex.Match(url,
-                @"^(https?://(?:www\.)?youtube\.com/watch\?v=[^&]+)",
-                RegexOptions.IgnoreCase);
+                                    @"^(https?://(?:www\.)?youtube\.com/watch\?v=[^&]+)",
+                                    RegexOptions.IgnoreCase);
 
             return match.Success ? match.Groups[1].Value : url;
         }
 
         public string TryExtractVideoId(string url) {
-            if (string.IsNullOrWhiteSpace(url))
+            if (string.IsNullOrWhiteSpace(url)) {
                 return null;
+            }
 
             var match = m_youTubeIdRegex.Match(url);
             return (match.Success && match.Groups[1].Value.Length == 11)
@@ -38,7 +39,7 @@ namespace TCS.YoutubePlayer.UrlProcessing {
                 : null;
         }
 
-        public DateTime? ParseExpiryFromUrl(string url) {
+        public static DateTime? ParseExpiryFromUrl(string url) {
             try {
                 var match = Regex.Match(url, @"[?&]expire=(\d+)");
                 if (match.Success && long.TryParse(match.Groups[1].Value, out long unixSeconds)) {
@@ -52,9 +53,11 @@ namespace TCS.YoutubePlayer.UrlProcessing {
             return null;
         }
 
-        public string SanitizeForShell(string input) {
-            if (string.IsNullOrEmpty(input)) return string.Empty;
-            
+        public static string SanitizeForShell(string input) {
+            if (string.IsNullOrEmpty(input)) {
+                return string.Empty;
+            }
+
             return input.Replace("\"", "\\\"")
                        .Replace("'", "\\'")
                        .Replace("`", "\\`")

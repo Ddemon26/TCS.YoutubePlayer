@@ -1,5 +1,4 @@
 using Newtonsoft.Json;
-
 namespace TCS.YoutubePlayer.Configuration {
     [Serializable] 
     internal class YtDlpConfig {

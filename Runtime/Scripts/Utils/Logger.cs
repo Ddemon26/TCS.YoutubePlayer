@@ -1,5 +1,5 @@
-using System;
-using UnityEngine;
+using System.Diagnostics;
+using Debug = UnityEngine.Debug;
 using Object = UnityEngine.Object;
 
 namespace TCS.YoutubePlayer.Utils {
@@ -112,8 +112,8 @@ namespace TCS.YoutubePlayer.Utils {
         }
 
         //Without context
-        [System.Diagnostics.Conditional("UNITY_EDITOR")]
-        [System.Diagnostics.Conditional("DEVELOPMENT_BUILD")]
+        [Conditional("UNITY_EDITOR")]
+        [Conditional("DEVELOPMENT_BUILD")]
         public static void Log(object message) => LogInternal(message, LogType.Log);
         
         public static void LogWarning(object message) => LogInternal(message, LogType.Warning);
@@ -121,12 +121,12 @@ namespace TCS.YoutubePlayer.Utils {
         public static void LogAssert(object message) => LogInternal(message, LogType.Assert);
         public static void LogException(object message) => LogInternal(message, LogType.Exception);
         
-        [System.Diagnostics.Conditional("UNITY_EDITOR")]
+        [Conditional("UNITY_EDITOR")]
         public static void LogTODO(object message) => LogInternal(message, LogType.TODO);
         
         // Performance debugging
-        [System.Diagnostics.Conditional("UNITY_EDITOR")]
-        [System.Diagnostics.Conditional("DEVELOPMENT_BUILD")]
+        [Conditional("UNITY_EDITOR")]
+        [Conditional("DEVELOPMENT_BUILD")]
         public static void LogPerformance(string operation, TimeSpan duration) {
             LogInternal($"[PERF] {operation} took {duration.TotalMilliseconds:F2}ms", LogType.Log);
         }

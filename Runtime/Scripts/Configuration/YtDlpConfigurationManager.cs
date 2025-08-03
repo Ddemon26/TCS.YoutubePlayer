@@ -1,12 +1,9 @@
-using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
-using UnityEngine;
 using TCS.YoutubePlayer.Exceptions;
 using TCS.YoutubePlayer.ToolManagement;
-
 namespace TCS.YoutubePlayer.Configuration {
     public class YtDlpConfigurationManager : IDisposable {
         readonly YtDlpConfig m_config;
@@ -49,11 +46,10 @@ namespace TCS.YoutubePlayer.Configuration {
             };
         }
 
-        public async Task<string> EnsureFFmpegAsync(CancellationToken cancellationToken = default) {
-            return await m_toolDownloadManager.EnsureFFmpegAsync(cancellationToken);
-        }
+        public async Task<string> EnsureFFmpegAsync(CancellationToken cancellationToken = default)
+            => await m_toolDownloadManager.EnsureFFmpegAsync(cancellationToken);
 
-        YtDlpConfig LoadConfiguration() {
+        static YtDlpConfig LoadConfiguration() {
             string projectRoot = Path.GetDirectoryName(Application.dataPath);
             if (string.IsNullOrEmpty(projectRoot)) {
                 throw new YtDlpException(
