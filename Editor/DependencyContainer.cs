@@ -135,5 +135,7 @@
     public void SetHeaderText(string header) => m_header.text = header;
     public void SetInformationText(string info) => m_informationLabel.text = info;
     public void SetVersionValue(string version) => m_versionValueLabel.text = version;
+    public void ToggleCurrentVersionVisibility(bool isVisible) 
+        => m_versionContainer.style.display = isVisible ? DisplayStyle.Flex : DisplayStyle.None;
     #endregion
 }
