@@ -42,8 +42,8 @@ namespace TCS.YoutubePlayer {
                 m_ytlDipDependencyContainer.SetHeaderText( "Yt-dlp" );
                 m_ytlDipDependencyContainer.SetInformationText(
                     "Yt-dlp is a fork of youtube-dl with enhanced features for converting YouTube URLs into Unity playable videos. " +
-                    " Download Link: https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp.exe" +
-                    "Additional features include automatic conflict resolution and improved error handling."
+                    "Additional features include automatic conflict resolution and improved error handling." +
+                    "\nDownload Link: https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp.exe"
                 );
 
                 m_ffmpegDependencyContainer = root.Q<DependencyContainer>( "Ffmpeg" );
@@ -56,7 +56,7 @@ namespace TCS.YoutubePlayer {
                     "FFmpeg is a complete, cross-platform solution to record, convert and stream audio and video. " +
                     "It is used by this tool for video processing tasks. " +
                     "Ffmpeg provides robust support for various media formats and high performance transcoding. " +
-                    "Download Link: https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.zip"
+                    "\nDownload Link: https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.zip"
                 );
                 m_ffmpegDependencyContainer.ToggleCurrentVersionVisibility( false );
 
