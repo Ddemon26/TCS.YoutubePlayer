@@ -7,13 +7,13 @@ public class YoutubeUI : MonoBehaviour {
 
     YoutubePlayerElement m_youtubePlayerElement;
     public void Awake() {
-        //get the YoutubePlayerElement from the UIDocument
         if ( m_uiDoc ) {
             m_youtubePlayerElement = m_uiDoc.rootVisualElement.Q<YoutubePlayerElement>();
         }
     }
 
     void Update() {
+        if ( m_youtubePlayerElement == null || !m_videoPlayer || !m_youtubePlayer.IsInitialized ) return;
         m_youtubePlayerElement.ProgressValue = m_videoPlayer.GetPlaybackTime();
     }
 
@@ -32,6 +32,7 @@ public class YoutubeUI : MonoBehaviour {
     void VideoStarted() {
         m_youtubePlayerElement.ProgressMaxValue = m_videoPlayer.GetFullLength();
         m_youtubePlayerElement.ProgressMinValue = 0f;
+        m_youtubePlayerElement.SetCurrentPlaying( m_youtubePlayer.Title );
     }
     
     void PlayPressed() {

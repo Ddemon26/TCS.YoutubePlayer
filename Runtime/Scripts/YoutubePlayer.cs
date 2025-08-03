@@ -1,6 +1,8 @@
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine.Video;
+using TCS.YoutubePlayer.Configuration;
 using Logger = TCS.YoutubePlayer.Utils.Logger;
 
 namespace TCS.YoutubePlayer {
@@ -34,7 +36,7 @@ namespace TCS.YoutubePlayer {
         bool m_isInitialized;
         bool m_initializationFailed;
 
-        void Awake() {
+        async void Awake() {
             try {
                 if ( !m_videoPlayer ) {
                     m_videoPlayer = GetComponent<VideoPlayer>();
@@ -53,31 +55,43 @@ namespace TCS.YoutubePlayer {
                 }
                 
                 // Start initialization asynchronously but don't await in Awake
-                _ = InitializeAsync();
+                await InitializeAsync();
             }
             catch (Exception e) {
                 Logger.LogError($"[YoutubePlayer] Failed to initialize VideoPlayer: {e.Message}");
             }
         }
 
-        async Task InitializeAsync() {
+        Task InitializeAsync() {
             try {
-                Logger.Log("[YoutubePlayer] Initializing external tools...");
-                await YtDlpExternalTool.InitializeToolsAsync(m_cts.Token);
-                Logger.Log("[YoutubePlayer] External tools initialized successfully.");
+                Logger.Log("[YoutubePlayer] Checking external tool dependencies...");
                 
-                await YtDlpExternalTool.PerformYtDlpUpdateCheckAsync(m_cts.Token);
+                bool ytDlpExists = CheckYtDlpExists();
+                bool ffmpegExists = CheckFfmpegExists();
+                
+                if (!ytDlpExists) {
+                    Logger.LogWarning("[YoutubePlayer] yt-dlp is not installed. Please use the TCS Youtube Player editor window to install required dependencies.");
+                    m_initializationFailed = true;
+                    return Task.CompletedTask;
+                }
+                
+                if (!ffmpegExists) {
+                    Logger.LogWarning("[YoutubePlayer] ffmpeg is not installed. MP4 conversion features will be unavailable. Use the TCS Youtube Player editor window to install ffmpeg if needed.");
+                }
+                
+                Logger.Log("[YoutubePlayer] Dependency check completed.");
                 m_isInitialized = true;
-                Logger.Log("[YoutubePlayer] Initialization completed successfully.");
             }
             catch (OperationCanceledException) {
-                Logger.LogWarning("[YoutubePlayer] Tool initialization or update check was cancelled during initialization.");
+                Logger.LogWarning("[YoutubePlayer] Dependency check was cancelled during initialization.");
                 m_initializationFailed = true;
             }
             catch (Exception e) {
-                Logger.LogError($"[YoutubePlayer] Failed to initialize tools or check for updates: {e.Message}");
+                Logger.LogError($"[YoutubePlayer] Failed to check dependencies: {e.Message}");
                 m_initializationFailed = true;
             }
+
+            return Task.CompletedTask;
         }
 
         /// <summary>
@@ -103,7 +117,7 @@ namespace TCS.YoutubePlayer {
                     
                     if (!m_isInitialized) {
                         if (m_initializationFailed) {
-                            Logger.LogError("[YoutubePlayer] Initialization failed. Cannot play video.");
+                            Logger.LogError("[YoutubePlayer] Initialization failed. Required dependencies are missing. Please use the TCS Youtube Player editor window to install them.");
                             return;
                         }
 
@@ -180,6 +194,28 @@ namespace TCS.YoutubePlayer {
             Logger.LogError($"[YoutubePlayer] VideoPlayer error: {message}");
             if (!string.IsNullOrEmpty(m_currentVideoUrl)) {
                 Logger.LogError($"[YoutubePlayer] Failed to play video from URL: {m_currentVideoUrl}");
+            }
+        }
+
+        bool CheckYtDlpExists() {
+            try {
+                string ytDlpPath = YtDlpConfigurationManager.GetYtDlpPath();
+                return File.Exists(ytDlpPath);
+            }
+            catch (Exception e) {
+                Logger.LogError($"[YoutubePlayer] Error checking yt-dlp path: {e.Message}");
+                return false;
+            }
+        }
+        
+        bool CheckFfmpegExists() {
+            try {
+                string ffmpegPath = YtDlpConfigurationManager.GetFFmpegPath();
+                return File.Exists(ffmpegPath);
+            }
+            catch (Exception e) {
+                Logger.LogError($"[YoutubePlayer] Error checking ffmpeg path: {e.Message}");
+                return false;
             }
         }
 

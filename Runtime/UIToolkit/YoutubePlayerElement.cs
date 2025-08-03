@@ -172,6 +172,10 @@
     void PausePressed() => OnPauseButtonClicked?.Invoke();
     void PrevPressed() => OnPrevButtonClicked?.Invoke();
     void NextPressed() => OnNextButtonClicked?.Invoke();
+    
+    public void SetCurrentPlaying(string title) {
+        m_context.text = $"{title}";
+    }
 
     public void Dispose() {
         // Unregister callbacks to prevent memory leaks
