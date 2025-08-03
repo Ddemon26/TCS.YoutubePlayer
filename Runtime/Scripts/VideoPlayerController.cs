@@ -10,10 +10,24 @@ namespace TCS.YoutubePlayer {
         VideoPlayer m_player;
         AudioSource m_audioSrc; // only present if you add one yourself
 
+        public event Action OnVideoStarted;
+
         void Awake() {
             m_player = GetComponent<VideoPlayer>();
             m_audioSrc = GetComponent<AudioSource>(); // null unless you routed audio to a source
             m_player.loopPointReached += _ => OnLoopReached();
+        }
+        
+        void OnEnable() {
+            if ( m_player ) {
+                m_player.started += HandleVideoStarted;
+            }
+        }
+
+        void OnDestroy() {
+            if (m_player) {
+                m_player.started -= HandleVideoStarted;
+            }
         }
 
         void Start() {
@@ -42,6 +56,15 @@ namespace TCS.YoutubePlayer {
                 m_player.Play();
             }
         }
+        
+        // just play
+        public void PlayPlayback() {
+            if ( m_player == null || !m_player.isPrepared ) {
+                return;
+            }
+
+            m_player.Play();
+        }
 
         /// <summary>
         /// Stops video playback completely
@@ -52,6 +75,22 @@ namespace TCS.YoutubePlayer {
             }
 
             m_player.Stop();
+        }
+        
+        public float GetPlaybackTime() {
+            if ( !m_player || !m_player.isPrepared ) {
+                return 0f;
+            }
+
+            return (float)m_player.time;
+        }
+        
+        public float GetFullLength() {
+            if ( m_player == null || !m_player.isPrepared ) {
+                return 0f;
+            }
+
+            return (float)m_player.length;
         }
 
         /// <summary>
@@ -110,7 +149,10 @@ namespace TCS.YoutubePlayer {
             }
         }
 
-        /* ───────────────── INTERNAL ───────────────── */
+        
+        void HandleVideoStarted(VideoPlayer source) {
+            OnVideoStarted?.Invoke();
+        }
 
         async Task SeekAsync(float toTime) {
             if ( !m_player.isPrepared ) {

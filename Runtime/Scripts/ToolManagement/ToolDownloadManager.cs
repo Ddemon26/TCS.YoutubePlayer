@@ -35,7 +35,7 @@ namespace TCS.YoutubePlayer.ToolManagement {
                 Dictionary<string, ToolVersionInfo> versionInfo = JsonConvert.DeserializeObject<Dictionary<string, ToolVersionInfo>>(json);
                 
                 if (!versionInfo.TryGetValue( toolName, out var toolInfo )) {
-                    return true; // Tool not tracked, update needed
+                    return true; // Tool is not tracked, update needed
                 }
 
                 // Check if tool was downloaded more than 7 days ago
@@ -112,7 +112,7 @@ namespace TCS.YoutubePlayer.ToolManagement {
                 return ffmpegPath;
             }
 
-            // Only download for Windows platform for now
+            // Only download for the Windows platform for now
             if (Application.platform != RuntimePlatform.WindowsPlayer && Application.platform != RuntimePlatform.WindowsEditor) {
                 throw new NotSupportedException($"Automatic FFmpeg download not supported for platform {Application.platform}");
             }
@@ -168,7 +168,10 @@ namespace TCS.YoutubePlayer.ToolManagement {
         }
 
         async Task DownloadFileAsync(string url, string destinationPath, CancellationToken cancellationToken) {
-            Directory.CreateDirectory(Path.GetDirectoryName(destinationPath));
+            string directoryName = Path.GetDirectoryName(destinationPath);
+            if (!string.IsNullOrEmpty(directoryName)) {
+                Directory.CreateDirectory(directoryName);
+            }
             
             try {
                 using var response = await m_httpClient.GetAsync(url, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
@@ -237,7 +240,10 @@ namespace TCS.YoutubePlayer.ToolManagement {
                     Directory.Delete(ffmpegTargetDir, true);
                 }
                 
-                Directory.CreateDirectory(Path.GetDirectoryName(ffmpegTargetDir));
+                string parentDirectory = Path.GetDirectoryName(ffmpegTargetDir);
+                if (!string.IsNullOrEmpty(parentDirectory)) {
+                    Directory.CreateDirectory(parentDirectory);
+                }
                 Directory.Move(ffmpegSourceDir, ffmpegTargetDir);
                 
                 // Clean up temp directory

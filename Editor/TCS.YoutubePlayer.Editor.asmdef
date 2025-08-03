@@ -1,7 +1,10 @@
 {
     "name": "TCS.YoutubePlayer.Editor",
     "rootNamespace": "",
-    "references": [],
+    "references": [
+        "GUID:ff5c6924b82fe974a8fdf8c5104522a3",
+        "GUID:3ef187033d06e9b4784c7704ef8d1481"
+    ],
     "includePlatforms": [
         "Editor"
     ],

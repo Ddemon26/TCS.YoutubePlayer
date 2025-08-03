@@ -1,0 +1,11 @@
+<ui:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="True">
+    <Style src="project://database/Assets/TCS.YoutubePlayer/Editor/InstallWindow.uss?fileID=7433441132597879392&amp;guid=f6257669670dad94cbc99b27226591ad&amp;type=3#InstallWindow" />
+    <Style src="project://database/Assets/TCS.YoutubePlayer/Editor/DependencyContainer.uss?fileID=7433441132597879392&amp;guid=0bd1ea02e9664f44d9f723e2378997d0&amp;type=3#DependencyContainer" />
+    <ui:VisualElement name="ROOT" style="flex-grow: 1; flex-shrink: 0;">
+        <ui:VisualElement name="HeaderContainer" style="border-top-width: 0.6px; border-bottom-width: 0.6px; border-left-color: rgb(0, 0, 0); border-right-color: rgb(0, 0, 0); border-top-color: rgb(0, 0, 0); border-bottom-color: rgb(0, 0, 0);">
+            <ui:Label text="Unity Youtube Player Install Panel" style="-unity-text-align: upper-center; font-size: 16px; -unity-font-style: bold;" />
+        </ui:VisualElement>
+        <DependencyContainer name="Ytldip" />
+        <DependencyContainer name="Ffmpeg" />
+    </ui:VisualElement>
+</ui:UXML>

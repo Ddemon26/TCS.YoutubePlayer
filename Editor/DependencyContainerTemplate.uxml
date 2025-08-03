@@ -1,0 +1,27 @@
+<ui:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="True">
+    <ui:VisualElement name="Root" style="padding-top: 10px; margin-right: 18px; margin-left: 18px;">
+        <ui:VisualElement name="HeaderContainer" style="padding-bottom: 5px;">
+            <ui:Label text="Header" name="Header" style="-unity-text-align: upper-center; font-size: 14px; -unity-font-style: bold;" />
+        </ui:VisualElement>
+        <ui:VisualElement name="Info" style="border-top-width: 1px; border-right-width: 1px; border-bottom-width: 1px; border-left-width: 1px; border-left-color: rgb(34, 34, 34); border-right-color: rgb(34, 34, 34); border-top-color: rgb(34, 34, 34); border-bottom-color: rgb(34, 34, 34); background-color: rgb(47, 47, 47);">
+            <ui:Foldout text="Information" value="false" name="InformationFoldout">
+                <ui:Label text="Ytl-dip is used for converting url into unity playable videos." name="InformationLabel" style="white-space: pre-wrap;" />
+            </ui:Foldout>
+        </ui:VisualElement>
+        <ui:VisualElement name="InstalledContainer" style="flex-direction: row;">
+            <ui:Label text="Installed:" name="InstalledLabel" />
+            <ui:VisualElement name="Spacing" style="flex-grow: 1;" />
+            <ui:VisualElement name="InstallTexture" style="background-image: url(&quot;project://database/Assets/TCS.YoutubePlayer/Editor/circle_white_16x16.png?fileID=2800000&amp;guid=390f87967193b5c40ac8ad8dce74f253&amp;type=3#circle_white_16x16&quot;); width: 16px; background-size: 50% 50%;" />
+        </ui:VisualElement>
+        <ui:VisualElement name="VersionContainer" style="flex-direction: row;">
+            <ui:Label text="Current Version:" name="VersionLabel" />
+            <ui:VisualElement name="Spacing" style="flex-grow: 1;" />
+            <ui:Label text="1.0.0" name="VersionValueLabel" />
+        </ui:VisualElement>
+        <ui:VisualElement name="InsallContainer" style="flex-direction: row; justify-content: center;">
+            <ui:Button text="Install" name="InstallButton" />
+            <ui:Button text="Update" name="UpdateButton" />
+            <ui:Button text="Uninstall" name="UninstallButton" />
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

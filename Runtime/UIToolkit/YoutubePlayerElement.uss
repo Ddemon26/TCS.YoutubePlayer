@@ -1,0 +1,89 @@
+.youtube-player-element_root {
+    flex-grow: 1;
+    align-items: center;
+    justify-content: center;
+}
+
+.youtube-player-element_panel {
+    flex-grow: 0;
+    margin-top: 0;
+    margin-right: 0;
+    margin-bottom: 0;
+    margin-left: 0;
+    background-color: rgba(60, 60, 60, 0.75);
+    flex-shrink: 0;
+    width: 30%;
+    height: auto;
+    min-width: initial;
+    min-height: auto;
+    max-width: initial;
+    max-height: 50%;
+    overflow: hidden;
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+    border-bottom-right-radius: 8px;
+    border-bottom-left-radius: 8px;
+}
+
+.youtube-player-element_header-container {
+    flex-grow: 0;
+    flex-shrink: 0;
+}
+
+.youtube-player-element_header {
+    margin-top: 0;
+    margin-right: 0;
+    margin-bottom: 0;
+    margin-left: 0;
+    padding-top: 0;
+    padding-right: 0;
+    padding-bottom: 0;
+    padding-left: 0;
+    -unity-text-align: middle-center;
+    -unity-font-style: bold;
+    font-size: 35px;
+    color: rgb(255, 255, 255);
+}
+
+.youtube-player-element_search-container {
+    flex-grow: 0;
+    flex-direction: row;
+    flex-shrink: 1;
+}
+
+.youtube-player-element_url-field {
+    flex-grow: 1;
+    flex-shrink: 1;
+}
+
+.youtube-player-element_current-title-container {
+    flex-grow: 0;
+    flex-direction: row;
+    flex-shrink: 0;
+    -unity-font-style: bold;
+    max-width: 100%;
+    align-self: center;
+    color: rgb(255, 255, 255);
+}
+
+.youtube-player-element_context {
+    flex-grow: 0;
+    flex-shrink: 1;
+    text-overflow: ellipsis;
+    overflow: hidden;
+}
+
+.youtube-player-element_button-strip-container {
+    flex-grow: 0;
+    flex-direction: row;
+    flex-shrink: 0;
+    justify-content: center;
+    -unity-font-style: bold;
+}
+
+.youtube-player-element_progress-container {
+    flex-grow: 0;
+    flex-shrink: 0;
+    margin-left: 100px;
+    margin-right: 100px;
+}

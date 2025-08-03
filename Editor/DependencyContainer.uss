@@ -1,0 +1,59 @@
+.dependency-container_root {
+    padding-top: 10px;
+    margin-right: 18px;
+    margin-left: 18px;
+}
+
+.dependency-container_header-container {
+    padding-bottom: 5px;
+}
+
+.dependency-container_header {
+    -unity-text-align: upper-center;
+    font-size: 14px;
+    -unity-font-style: bold;
+}
+
+.dependency-container_info {
+    border-top-width: 1px;
+    border-right-width: 1px;
+    border-bottom-width: 1px;
+    border-left-width: 1px;
+    border-left-color: rgb(34, 34, 34);
+    border-right-color: rgb(34, 34, 34);
+    border-top-color: rgb(34, 34, 34);
+    border-bottom-color: rgb(34, 34, 34);
+    background-color: rgb(47, 47, 47);
+}
+
+.dependency-container_information-label {
+    white-space: pre-wrap;
+}
+
+.dependency-container_installed-container {
+    flex-direction: row;
+}
+
+.dependency-container_spacing {
+    flex-grow: 1;
+}
+
+.dependency-container_install-texture {
+    background-image: url("project://database/Assets/TCS.YoutubePlayer/Editor/circle_white_16x16.png?fileID=2800000&guid=390f87967193b5c40ac8ad8dce74f253&type=3#circle_white_16x16");
+    width: 16px;
+    background-size: 50% 50%;
+}
+
+.dependency-container_version-container {
+    flex-direction: row;
+}
+
+.dependency-container_spacing2 {
+    flex-grow: 1;
+}
+
+.dependency-container_insall-container {
+    flex-direction: row;
+    justify-content: center;
+}
+
