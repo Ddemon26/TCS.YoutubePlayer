@@ -23,11 +23,11 @@ A Unity package for YouTube video playback with automatic tool management, suppo
 
 1. Open Unity Package Manager (`Window > Package Manager`)
 2. Click the `+` button and select `Add package from git URL`
-3. Enter: `https://github.com/yourusername/TCS.YoutubePlayer.git`
+3. Enter: `https://github.com/Ddemon26/TCS.YoutubePlayer.git`
 
 ### Manual Installation
 
-1. Download the latest release from [Releases](https://github.com/yourusername/TCS.YoutubePlayer/releases)
+1. Download the latest release from [Releases](https://github.com/Ddemon26/TCS.YoutubePlayer/releases)
 2. Extract to your Unity project's `Assets` folder
 3. Unity will automatically import the package
 
