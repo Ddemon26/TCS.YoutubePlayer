@@ -2,16 +2,11 @@ using System.IO;
 using System.IO.Compression;
 using System.Net.Http;
 using System.Threading;
-using System.Threading.Tasks;
 using Newtonsoft.Json;
-using TCS.YoutubePlayer.Exceptions;
 
 namespace TCS.YoutubePlayer.ToolManagement {
-    public enum LibraryType {
-        YtDlp,
-        FFmpeg,
-    }
-    
+    public enum LibraryType { YtDlp, FFmpeg, }
+
     public class ToolDownloadManager : IDisposable {
         readonly HttpClient m_httpClient;
         readonly string m_toolsDirectory;
@@ -26,12 +21,12 @@ namespace TCS.YoutubePlayer.ToolManagement {
             m_toolsDirectory = Application.streamingAssetsPath;
             Directory.CreateDirectory( m_toolsDirectory );
         }
-        
+
         public string LibraryDirectory(LibraryType libraryType) {
             return libraryType switch {
-                LibraryType.YtDlp => Path.Combine(m_toolsDirectory, "yt-dlp"),
-                LibraryType.FFmpeg => Path.Combine(m_toolsDirectory, "ffmpeg"),
-                _ => throw new NotSupportedException($"Library type {libraryType} is not supported."),
+                LibraryType.YtDlp => Path.Combine( m_toolsDirectory, "yt-dlp" ),
+                LibraryType.FFmpeg => Path.Combine( m_toolsDirectory, "ffmpeg" ),
+                _ => throw new NotSupportedException( $"Library type {libraryType} is not supported." ),
             };
         }
 
@@ -165,7 +160,7 @@ namespace TCS.YoutubePlayer.ToolManagement {
             };
         }
 
-        public string GetYtDlpPath() {
+        string GetYtDlpPath() {
             return Application.platform switch {
                 RuntimePlatform.WindowsPlayer or RuntimePlatform.WindowsEditor
                     => Path.Combine( m_toolsDirectory, "yt-dlp", "Windows", "yt-dlp.exe" ),
@@ -177,7 +172,7 @@ namespace TCS.YoutubePlayer.ToolManagement {
             };
         }
 
-        public string GetFFmpegPath() {
+        string GetFFmpegPath() {
             return Application.platform switch {
                 RuntimePlatform.WindowsPlayer or RuntimePlatform.WindowsEditor
                     => Path.Combine( m_toolsDirectory, "ffmpeg", "Windows", "bin", "ffmpeg.exe" ),

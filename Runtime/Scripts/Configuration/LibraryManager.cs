@@ -1,12 +1,11 @@
 using System.IO;
 using System.Threading;
-using System.Threading.Tasks;
 using TCS.YoutubePlayer.ToolManagement;
 namespace TCS.YoutubePlayer.Configuration {
-    public class YtDlpConfigurationManager : IDisposable {
+    public class LibraryManager : IDisposable {
         readonly ToolDownloadManager m_toolDownloadManager;
 
-        public YtDlpConfigurationManager() {
+        public LibraryManager() {
             m_toolDownloadManager = new ToolDownloadManager();
         }
 

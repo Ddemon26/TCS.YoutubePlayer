@@ -1,13 +1,16 @@
 using System.IO;
 using System.Threading;
-using System.Threading.Tasks;
-using UnityEngine.Video;
 using TCS.YoutubePlayer.Configuration;
-
+using UnityEngine.Video;
 namespace TCS.YoutubePlayer {
     [RequireComponent( typeof(VideoPlayer) )]
     public class YoutubePlayer : MonoBehaviour {
         public bool m_isAllowedToDownload; // Flag to control download behavior
+
+        [Header( "Configuration" )]
+        [SerializeField] string m_profileName = "Default";
+        [SerializeField] YtDlpSettings m_currentSettings = new();
+        YtDlpProfileManager m_profileManager;
 
         [SerializeField] string m_title = string.Empty;
         /// <summary>
@@ -54,6 +57,9 @@ namespace TCS.YoutubePlayer {
                     return;
                 }
 
+                // Initialize configuration system
+                InitializeConfiguration();
+
                 // Start initialization asynchronously but don't await in Awake
                 await InitializeAsync();
             }
@@ -94,6 +100,29 @@ namespace TCS.YoutubePlayer {
             return Task.CompletedTask;
         }
 
+        void InitializeConfiguration() {
+            try {
+                // Initialize profile manager
+                m_profileManager = new YtDlpProfileManager();
+
+                // If settings were set via Inspector, keep them
+                if ( m_currentSettings != null ) {
+                    Logger.Log( "Using settings configured in Inspector" );
+                    return;
+                }
+
+                // Otherwise try to load profile
+                LoadProfile( m_profileName );
+                Logger.Log( $"Loaded YouTube player profile: {m_profileName}" );
+            }
+            catch (Exception e) {
+                Logger.LogWarning( $"Failed to initialize configuration, using defaults: {e.Message}" );
+                if ( m_currentSettings == null ) {
+                    m_currentSettings = new YtDlpSettings();
+                }
+            }
+        }
+
         /// <summary>
         /// Plays a YouTube video from the specified URL. Supports both streaming and download modes.
         /// </summary>
@@ -128,7 +157,7 @@ namespace TCS.YoutubePlayer {
                 m_currentVideoUrl = url; // Store the URL we are trying to play
                 Logger.Log( $"Attempting to play: {url}" );
 
-                string directUrlAsync = await YtDlpExternalTool.GetDirectUrlAsync( url, m_cts.Token );
+                string directUrlAsync = await YtDlpExternalTool.GetDirectUrlAsync( url, m_currentSettings, m_cts.Token );
 
                 if ( string.IsNullOrEmpty( directUrlAsync ) ) {
                     Logger.LogError( "Failed to get direct URL from yt-dlp" );
@@ -138,7 +167,7 @@ namespace TCS.YoutubePlayer {
                 if ( IsMp4Stream( directUrlAsync ) && m_isAllowedToDownload ) {
                     Logger.Log( $"Detected Mp4 stream: {directUrlAsync}" );
                     try {
-                        string mp4Path = await YtDlpExternalTool.ConvertToMp4Async( directUrlAsync, m_cts.Token );
+                        string mp4Path = await YtDlpExternalTool.ConvertToMp4Async( directUrlAsync, m_currentSettings, m_cts.Token );
                         if ( !string.IsNullOrEmpty( mp4Path ) ) {
                             Logger.Log( $"Preemptive conversion successful. Playing local file: {mp4Path}" );
                             m_videoPlayer.source = VideoSource.Url;
@@ -200,7 +229,7 @@ namespace TCS.YoutubePlayer {
 
         bool CheckYtDlpExists() {
             try {
-                string ytDlpPath = YtDlpConfigurationManager.GetYtDlpPath();
+                string ytDlpPath = LibraryManager.GetYtDlpPath();
                 return File.Exists( ytDlpPath );
             }
             catch (Exception e) {
@@ -211,7 +240,7 @@ namespace TCS.YoutubePlayer {
 
         bool CheckFfmpegExists() {
             try {
-                string ffmpegPath = YtDlpConfigurationManager.GetFFmpegPath();
+                string ffmpegPath = LibraryManager.GetFFmpegPath();
                 return File.Exists( ffmpegPath );
             }
             catch (Exception e) {
@@ -242,6 +271,36 @@ namespace TCS.YoutubePlayer {
             finally {
                 m_cts?.Dispose();
             }
+        }
+
+        public void LoadProfile(string profileName) {
+            if ( m_profileManager == null ) {
+                Logger.LogWarning( "Profile manager not initialized, using default settings" );
+                m_currentSettings = new YtDlpSettings();
+                return;
+            }
+
+            var profile = m_profileManager.GetProfile( profileName );
+            m_currentSettings = profile?.Settings?.Clone() ?? new YtDlpSettings();
+            m_profileName = profileName;
+            Logger.Log( $"Loaded profile '{profileName}' for YouTube player" );
+        }
+
+        public void SetCustomSettings(YtDlpSettings settings) {
+            m_currentSettings = settings?.Clone() ?? new YtDlpSettings();
+            m_profileName = "Custom";
+            Logger.Log( "Applied custom settings to YouTube player" );
+        }
+
+        public YtDlpSettings GetCurrentSettings() => m_currentSettings?.Clone();
+
+        public string GetCurrentProfileName() => m_profileName;
+
+        public void SaveCurrentSettingsAsProfile(string profileName, string description = "") {
+            if ( m_profileManager == null || m_currentSettings == null ) return;
+
+            m_profileManager.SaveProfile( profileName, m_currentSettings, description );
+            Logger.Log( $"Saved current settings as profile '{profileName}'" );
         }
     }
 }

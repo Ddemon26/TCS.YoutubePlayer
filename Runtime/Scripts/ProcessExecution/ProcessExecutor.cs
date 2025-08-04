@@ -2,25 +2,20 @@ using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
-using TCS.YoutubePlayer.Exceptions;
 using TCS.YoutubePlayer.ToolManagement;
 
 namespace TCS.YoutubePlayer.ProcessExecution {
     public class ProcessExecutor : IDisposable {
         readonly Dictionary<LibraryType, string> m_libraryPaths = new();
 
-        public ProcessExecutor(string ffmpegPath) {
-            m_libraryPaths[LibraryType.FFmpeg] = ffmpegPath;
-        }
+        public ProcessExecutor(string ffmpegPath)
+            => m_libraryPaths[LibraryType.FFmpeg] = ffmpegPath;
 
-        public void UpdateLibraryPath(LibraryType libraryType, string path) {
-            m_libraryPaths[libraryType] = path;
-        }
+        public void UpdateLibraryPath(LibraryType libraryType, string path)
+            => m_libraryPaths[libraryType] = path;
 
-        public void UpdateFFmpegPath(string ffmpegPath) {
-            UpdateLibraryPath(LibraryType.FFmpeg, ffmpegPath);
-        }
+        public void UpdateFFmpegPath(string ffmpegPath)
+            => UpdateLibraryPath( LibraryType.FFmpeg, ffmpegPath );
 
         /// <summary>
         /// Runs an external process asynchronously with optional timeout support
@@ -45,7 +40,7 @@ namespace TCS.YoutubePlayer.ProcessExecution {
             }
 
             // For library commands, resolve the full path
-            fileName = ResolveLibraryPath(fileName);
+            fileName = ResolveLibraryPath( fileName );
 
             TaskCompletionSource<ProcessResult> tcs = new();
             var process = new Process {
@@ -205,14 +200,14 @@ namespace TCS.YoutubePlayer.ProcessExecution {
 
         string ResolveLibraryPath(string fileName) {
             return fileName switch {
-                "ffmpeg" when m_libraryPaths.TryGetValue(LibraryType.FFmpeg, out var ffmpegPath) && !string.IsNullOrEmpty(ffmpegPath) => ffmpegPath,
-                "yt-dlp" when m_libraryPaths.TryGetValue(LibraryType.YtDlp, out var ytDlpPath) && !string.IsNullOrEmpty(ytDlpPath) => ytDlpPath,
-                _ => fileName
+                "ffmpeg" when m_libraryPaths.TryGetValue( LibraryType.FFmpeg, out var ffmpegPath ) && !string.IsNullOrEmpty( ffmpegPath ) => ffmpegPath,
+                "yt-dlp" when m_libraryPaths.TryGetValue( LibraryType.YtDlp, out var ytDlpPath ) && !string.IsNullOrEmpty( ytDlpPath ) => ytDlpPath,
+                _ => fileName,
             };
         }
 
         void SetEnvironmentVariables(Process process) {
-            if ( m_libraryPaths.TryGetValue(LibraryType.FFmpeg, out var ffmpegPath) && !string.IsNullOrEmpty(ffmpegPath) ) {
+            if ( m_libraryPaths.TryGetValue( LibraryType.FFmpeg, out var ffmpegPath ) && !string.IsNullOrEmpty( ffmpegPath ) ) {
                 #if UNITY_2020_1_OR_NEWER
                 process.StartInfo.Environment["FFMPEG_LOCATION"] = ffmpegPath;
                 #else
@@ -221,7 +216,7 @@ namespace TCS.YoutubePlayer.ProcessExecution {
             }
         }
 
-        private static void CleanupResources(
+        static void CleanupResources(
             CancellationTokenRegistration ctr,
             Process process,
             CancellationTokenSource linkedCts,
