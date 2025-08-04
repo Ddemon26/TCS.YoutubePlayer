@@ -4,18 +4,84 @@ using System.Linq;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using TCS.YoutubePlayer.UrlProcessing;
+#if UNITY_EDITOR
 using UnityEditor;
+#endif
 
 namespace TCS.YoutubePlayer.Caching {
     public class YtDlpUrlCache : IDisposable {
         readonly ConcurrentDictionary<string, CacheEntry> m_cache = new();
         readonly TimeSpan m_defaultCacheExpiration = TimeSpan.FromHours(4);
-        readonly string m_cacheFilePath = Path.Combine(Application.persistentDataPath, "yt_dlp_url_cache.json");
+        readonly string m_cacheFilePath;
+
+        string GetCacheFilePath() {
+#if UNITY_EDITOR
+            // In Unity Editor, find the package root dynamically
+            string currentFilePath = GetCurrentFilePath();
+            if (!string.IsNullOrEmpty(currentFilePath)) {
+                // Navigate up from the current file to find package root
+                string packageRoot = FindPackageRoot(currentFilePath);
+                if (!string.IsNullOrEmpty(packageRoot)) {
+                    return Path.Combine(packageRoot, "yt_dlp_url_cache.json");
+                }
+            }
+            
+            // Fallback: use persistent data path
+            return Path.Combine(Application.persistentDataPath, "yt_dlp_url_cache.json");
+#else
+            // In builds, use persistent data path
+            return Path.Combine(Application.persistentDataPath, "yt_dlp_url_cache.json");
+#endif
+        }
+
+        string FindPackageRoot(string filePath) {
+            string currentDir = Path.GetDirectoryName(filePath);
+            
+            // Look for package indicators: package.json, TCS.YoutubePlayer.asmdef, or Runtime folder with specific structure
+            while (!string.IsNullOrEmpty(currentDir)) {
+                // Check for package.json (UPM package)
+                if (File.Exists(Path.Combine(currentDir, "package.json"))) {
+                    try {
+                        string packageJsonContent = File.ReadAllText(Path.Combine(currentDir, "package.json"));
+                        if (packageJsonContent.Contains("\"name\"") && packageJsonContent.Contains("TCS.YoutubePlayer")) {
+                            return currentDir;
+                        }
+                    }
+                    catch {
+                        // Continue searching if we can't read the file
+                    }
+                }
+                
+                // Check for TCS.YoutubePlayer.asmdef in Runtime folder
+                string runtimePath = Path.Combine(currentDir, "Runtime");
+                if (Directory.Exists(runtimePath) && File.Exists(Path.Combine(runtimePath, "TCS.YoutubePlayer.asmdef"))) {
+                    return currentDir;
+                }
+                
+                // Check if current directory contains TCS.YoutubePlayer.asmdef (for direct Runtime placement)
+                if (File.Exists(Path.Combine(currentDir, "TCS.YoutubePlayer.asmdef"))) {
+                    return currentDir;
+                }
+                
+                // Move up one directory
+                string parentDir = Path.GetDirectoryName(currentDir);
+                if (parentDir == currentDir) break; // Reached root
+                currentDir = parentDir;
+            }
+            
+            return null;
+        }
+
+        string GetCurrentFilePath([System.Runtime.CompilerServices.CallerFilePath] string filePath = "") {
+            return filePath;
+        }
         readonly YouTubeUrlProcessor m_urlProcessor;
 
         public YtDlpUrlCache(YouTubeUrlProcessor urlProcessor) {
             m_urlProcessor = urlProcessor ?? throw new ArgumentNullException(nameof(urlProcessor));
-            _ = Task.Run(LoadCacheFromFileAsync);
+            m_cacheFilePath = GetCacheFilePath();
+            // Load cache synchronously to ensure it's available immediately
+            LoadCacheFromFile();
 
             #if !UNITY_EDITOR
             Application.quitting += SaveCacheToFile;
@@ -23,6 +89,9 @@ namespace TCS.YoutubePlayer.Caching {
             EditorApplication.playModeStateChanged += state => {
                 if (state == PlayModeStateChange.ExitingPlayMode) {
                     SaveCacheToFile();
+                } else if (state == PlayModeStateChange.EnteredPlayMode) {
+                    // Handle domain reload disabled case - reload cache when entering play mode
+                    ReloadCacheFromFile();
                 }
             };
             #endif
@@ -63,54 +132,80 @@ namespace TCS.YoutubePlayer.Caching {
             m_cache[cacheKey] = new CacheEntry(directUrl, title, videoUrl, expiry);
         }
 
-        async Task LoadCacheFromFileAsync() {
+        void LoadCacheFromFile() {
+            LoadCacheFromFileInternal(false);
+        }
+
+        void ReloadCacheFromFile() {
+            LoadCacheFromFileInternal(true);
+        }
+
+        void LoadCacheFromFileInternal(bool isReload) {
             if (File.Exists(m_cacheFilePath)) {
                 try {
-                    string json = await File.ReadAllTextAsync(m_cacheFilePath);
+                    string json = File.ReadAllText(m_cacheFilePath);
                     Dictionary<string, CacheEntry> loadedEntries = JsonConvert.DeserializeObject<Dictionary<string, CacheEntry>>(json);
 
                     if (loadedEntries != null) {
                         var loadedCount = 0;
+                        var expiredCount = 0;
+                        var updatedCount = 0;
+                        var currentTime = DateTime.UtcNow;
+                        
                         foreach (KeyValuePair<string, CacheEntry> kvp in loadedEntries) {
-                            if ( DateTime.UtcNow >= kvp.Value.ExpiresAt ) {
-                                continue;
+                            if (currentTime >= kvp.Value.ExpiresAt) {
+                                expiredCount++;
+                                continue; // Skip expired entries during loading
                             }
 
-                            if (m_cache.TryAdd(kvp.Key, kvp.Value)) {
-                                loadedCount++;
+                            if (isReload) {
+                                // During reload, update existing entries or add new ones
+                                var wasUpdated = m_cache.ContainsKey(kvp.Key);
+                                m_cache[kvp.Key] = kvp.Value;
+                                if (wasUpdated) {
+                                    updatedCount++;
+                                } else {
+                                    loadedCount++;
+                                }
+                            } else {
+                                // During initial load, only add if not already present
+                                if (m_cache.TryAdd(kvp.Key, kvp.Value)) {
+                                    loadedCount++;
+                                }
                             }
                         }
 
-                        Logger.Log($"[UrlCache] Loaded {loadedCount} non-expired entries from cache file: `{m_cacheFilePath}`");
+                        if (isReload) {
+                            Logger.Log($"[UrlCache] Reloaded cache: {loadedCount} new, {updatedCount} updated (skipped {expiredCount} expired): `{m_cacheFilePath}`");
+                        } else {
+                            Logger.Log($"[UrlCache] Loaded {loadedCount} valid entries from cache file (skipped {expiredCount} expired entries): `{m_cacheFilePath}`");
+                        }
                     }
                 }
                 catch (Exception ex) {
-                    Logger.LogError($"[UrlCache] Failed to load cache from `{m_cacheFilePath}`: {ex.Message}. Starting with an empty cache.");
+                    Logger.LogError($"[UrlCache] Failed to {(isReload ? "reload" : "load")} cache from `{m_cacheFilePath}`: {ex.Message}.");
                 }
             }
-            else {
+            else if (!isReload) {
                 Logger.Log($"[UrlCache] Cache file not found at `{m_cacheFilePath}`. Starting with an empty cache.");
             }
         }
 
         void SaveCacheToFile() {
             try {
+                var currentTime = DateTime.UtcNow;
                 Dictionary<string, CacheEntry> entriesToSave = m_cache
-                    .Where(kvp => DateTime.UtcNow < kvp.Value.ExpiresAt)
+                    .Where(kvp => currentTime < kvp.Value.ExpiresAt)
                     .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
 
+                // Always save the cache file, even if empty, to preserve the file for future sessions
+                string json = JsonConvert.SerializeObject(entriesToSave, Formatting.Indented);
+                File.WriteAllText(m_cacheFilePath, json);
+                
                 if (entriesToSave.Any()) {
-                    string json = JsonConvert.SerializeObject(entriesToSave, Formatting.Indented);
-                    File.WriteAllText(m_cacheFilePath, json);
-                    Logger.Log($"[UrlCache] Saved {entriesToSave.Count} cache entries to: `{m_cacheFilePath}`");
-                }
-                else {
-                    if ( !File.Exists( m_cacheFilePath ) ) {
-                        return;
-                    }
-
-                    File.Delete(m_cacheFilePath);
-                    Logger.Log($"[UrlCache] No valid cache entries to save. Deleted existing cache file: `{m_cacheFilePath}`");
+                    Logger.Log($"[UrlCache] Saved {entriesToSave.Count} valid cache entries to: `{m_cacheFilePath}`");
+                } else {
+                    Logger.Log($"[UrlCache] Saved empty cache (all entries expired) to: `{m_cacheFilePath}`");
                 }
             }
             catch (Exception ex) {

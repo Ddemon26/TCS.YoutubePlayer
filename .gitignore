@@ -79,3 +79,5 @@ CLAUDE.md.meta
 /.vscode
 /docs
 docs.meta
+Runtime/yt_dlp_url_cache.json
+Runtime/yt_dlp_url_cache.json.meta
