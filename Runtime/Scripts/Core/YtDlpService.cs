@@ -25,7 +25,7 @@ namespace TCS.YoutubePlayer {
 
         public YtDlpService(YtDlpSettings settings = null, IYtDlpCommandBuilder commandBuilder = null) {
             m_defaultSettings = settings ?? new YtDlpSettings();
-            m_commandBuilder = commandBuilder ?? new YtDlpCommandBuilder(m_defaultSettings);
+            m_commandBuilder = commandBuilder ?? new YtDlpCommandBuilder( m_defaultSettings );
             m_configManager = new LibraryManager();
             m_urlProcessor = new YouTubeUrlProcessor();
             m_urlCache = new YtDlpUrlCache( m_urlProcessor );
@@ -58,7 +58,7 @@ namespace TCS.YoutubePlayer {
         public string GetCacheTitle(string videoUrl) => m_urlCache.GetCacheTitle( videoUrl );
 
         public async Task<string> GetDirectUrlAsync(string videoUrl, CancellationToken cancellationToken) {
-            return await GetDirectUrlAsync(videoUrl, null, cancellationToken);
+            return await GetDirectUrlAsync( videoUrl, null, cancellationToken );
         }
 
         public async Task<string> GetDirectUrlAsync(string videoUrl, YtDlpSettings settings, CancellationToken cancellationToken) {
@@ -75,16 +75,18 @@ namespace TCS.YoutubePlayer {
             cancellationToken.ThrowIfCancellationRequested();
 
             string arguments;
-            if (settings != null) {
+            if ( settings != null ) {
                 // Use title command to get both title and URL for caching
-                arguments = m_commandBuilder.BuildGetTitleCommand(trimUrl, settings);
-            } else {
+                arguments = m_commandBuilder.BuildGetTitleCommand( trimUrl, settings );
+            }
+            else {
                 // Backward compatibility: use the legacy format with default browser
                 if ( string.IsNullOrEmpty( BROWSER_FOR_COOKIES ) ) {
                     throw new YtDlpException(
                         "BrowserForCookies is not set. Please assign a valid browser name."
                     );
                 }
+
                 var cookieArg = $" --cookies-from-browser \"{YouTubeUrlProcessor.SanitizeForShell( BROWSER_FOR_COOKIES )}\"";
                 arguments = string.Format( YT_DLP_TITLE_ARGS_FORMAT, YouTubeUrlProcessor.SanitizeForShell( trimUrl ) ) + cookieArg;
             }
@@ -103,14 +105,14 @@ namespace TCS.YoutubePlayer {
             }
 
             string[] lines = result.StandardOutput.Split( new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries );
-            
+
             // Both new and legacy paths now expect title and URL
-            if (lines.Length < 2) {
+            if ( lines.Length < 2 ) {
                 throw new YtDlpException(
                     $"yt-dlp failed to return both title and URL for '{videoUrl}'.\nStdout: {result.StandardOutput}\nStderr: {result.StandardError}"
                 );
             }
-            
+
             string title = lines[0].Trim();
             string directUrl = lines[1].Trim();
 

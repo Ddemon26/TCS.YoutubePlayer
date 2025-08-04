@@ -16,7 +16,7 @@ namespace TCS.YoutubePlayer {
             m_audioSrc = GetComponent<AudioSource>(); // null unless you routed audio to a source
             m_player.loopPointReached += _ => OnLoopReached();
         }
-        
+
         void OnEnable() {
             if ( m_player ) {
                 m_player.started += HandleVideoStarted;
@@ -24,7 +24,7 @@ namespace TCS.YoutubePlayer {
         }
 
         void OnDestroy() {
-            if (m_player) {
+            if ( m_player ) {
                 m_player.started -= HandleVideoStarted;
             }
         }
@@ -36,7 +36,7 @@ namespace TCS.YoutubePlayer {
             else {
                 m_player.prepareCompleted += _ => OnPrepared();
             }
-            
+
             SetVolume( 0.5f ); // Set default volume to 50%
         }
 
@@ -55,7 +55,7 @@ namespace TCS.YoutubePlayer {
                 m_player.Play();
             }
         }
-        
+
         // just play
         public void PlayPlayback() {
             if ( m_player == null || !m_player.isPrepared ) {
@@ -75,7 +75,7 @@ namespace TCS.YoutubePlayer {
 
             m_player.Stop();
         }
-        
+
         public float GetPlaybackTime() {
             if ( !m_player || !m_player.isPrepared ) {
                 return 0f;
@@ -83,7 +83,7 @@ namespace TCS.YoutubePlayer {
 
             return (float)m_player.time;
         }
-        
+
         public float GetFullLength() {
             if ( m_player == null || !m_player.isPrepared ) {
                 return 0f;
@@ -148,7 +148,7 @@ namespace TCS.YoutubePlayer {
             }
         }
 
-        
+
         void HandleVideoStarted(VideoPlayer source) {
             OnVideoStarted?.Invoke();
         }

@@ -5,10 +5,7 @@ using System.Threading;
 using Newtonsoft.Json;
 
 namespace TCS.YoutubePlayer.ToolManagement {
-    public enum LibraryType {
-        YtDlp,
-        FFmpeg,
-    }
+    public enum LibraryType { YtDlp, FFmpeg, }
 
     public class ToolDownloadManager : IDisposable {
         readonly HttpClient m_httpClient;
@@ -163,7 +160,7 @@ namespace TCS.YoutubePlayer.ToolManagement {
             };
         }
 
-        public string GetYtDlpPath() {
+        string GetYtDlpPath() {
             return Application.platform switch {
                 RuntimePlatform.WindowsPlayer or RuntimePlatform.WindowsEditor
                     => Path.Combine( m_toolsDirectory, "yt-dlp", "Windows", "yt-dlp.exe" ),
@@ -175,7 +172,7 @@ namespace TCS.YoutubePlayer.ToolManagement {
             };
         }
 
-        public string GetFFmpegPath() {
+        string GetFFmpegPath() {
             return Application.platform switch {
                 RuntimePlatform.WindowsPlayer or RuntimePlatform.WindowsEditor
                     => Path.Combine( m_toolsDirectory, "ffmpeg", "Windows", "bin", "ffmpeg.exe" ),

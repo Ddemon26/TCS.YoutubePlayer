@@ -15,7 +15,7 @@ namespace TCS.YoutubePlayer.ProcessExecution {
             => m_libraryPaths[libraryType] = path;
 
         public void UpdateFFmpegPath(string ffmpegPath)
-            => UpdateLibraryPath(LibraryType.FFmpeg, ffmpegPath);
+            => UpdateLibraryPath( LibraryType.FFmpeg, ffmpegPath );
 
         /// <summary>
         /// Runs an external process asynchronously with optional timeout support
@@ -40,7 +40,7 @@ namespace TCS.YoutubePlayer.ProcessExecution {
             }
 
             // For library commands, resolve the full path
-            fileName = ResolveLibraryPath(fileName);
+            fileName = ResolveLibraryPath( fileName );
 
             TaskCompletionSource<ProcessResult> tcs = new();
             var process = new Process {
@@ -200,14 +200,14 @@ namespace TCS.YoutubePlayer.ProcessExecution {
 
         string ResolveLibraryPath(string fileName) {
             return fileName switch {
-                "ffmpeg" when m_libraryPaths.TryGetValue(LibraryType.FFmpeg, out var ffmpegPath) && !string.IsNullOrEmpty(ffmpegPath) => ffmpegPath,
-                "yt-dlp" when m_libraryPaths.TryGetValue(LibraryType.YtDlp, out var ytDlpPath) && !string.IsNullOrEmpty(ytDlpPath) => ytDlpPath,
+                "ffmpeg" when m_libraryPaths.TryGetValue( LibraryType.FFmpeg, out var ffmpegPath ) && !string.IsNullOrEmpty( ffmpegPath ) => ffmpegPath,
+                "yt-dlp" when m_libraryPaths.TryGetValue( LibraryType.YtDlp, out var ytDlpPath ) && !string.IsNullOrEmpty( ytDlpPath ) => ytDlpPath,
                 _ => fileName,
             };
         }
 
         void SetEnvironmentVariables(Process process) {
-            if ( m_libraryPaths.TryGetValue(LibraryType.FFmpeg, out var ffmpegPath) && !string.IsNullOrEmpty(ffmpegPath) ) {
+            if ( m_libraryPaths.TryGetValue( LibraryType.FFmpeg, out var ffmpegPath ) && !string.IsNullOrEmpty( ffmpegPath ) ) {
                 #if UNITY_2020_1_OR_NEWER
                 process.StartInfo.Environment["FFMPEG_LOCATION"] = ffmpegPath;
                 #else

@@ -14,7 +14,7 @@ namespace TCS.YoutubePlayer.Caching {
         readonly string m_cacheFilePath;
 
         string GetCacheFilePath() {
-#if UNITY_EDITOR
+            #if UNITY_EDITOR
             // In Unity Editor, find the package root dynamically
             string currentFilePath = GetCurrentFilePath();
             if ( !string.IsNullOrEmpty( currentFilePath ) ) {
@@ -27,10 +27,10 @@ namespace TCS.YoutubePlayer.Caching {
 
             // Fallback: use persistent data path
             return Path.Combine( Application.persistentDataPath, "yt_dlp_url_cache.json" );
-#else
-            // In builds, use persistent data path
+            #else
+            // In builds, use the persistent data path
             return Path.Combine(Application.persistentDataPath, "yt_dlp_url_cache.json");
-#endif
+            #endif
         }
 
         string FindPackageRoot(string filePath) {
@@ -71,9 +71,8 @@ namespace TCS.YoutubePlayer.Caching {
             return null;
         }
 
-        string GetCurrentFilePath([System.Runtime.CompilerServices.CallerFilePath] string filePath = "") {
-            return filePath;
-        }
+        static string GetCurrentFilePath([System.Runtime.CompilerServices.CallerFilePath] string filePath = "") => filePath;
+
         readonly YouTubeUrlProcessor m_urlProcessor;
 
         public YtDlpUrlCache(YouTubeUrlProcessor urlProcessor) {
