@@ -77,7 +77,8 @@ namespace TCS.YoutubePlayer {
 
             string arguments;
             if (settings != null) {
-                arguments = m_commandBuilder.BuildGetDirectUrlCommand(trimUrl, settings);
+                // Use title command to get both title and URL for caching
+                arguments = m_commandBuilder.BuildGetTitleCommand(trimUrl, settings);
             } else {
                 // Backward compatibility: use the legacy format with default browser
                 if ( string.IsNullOrEmpty( BROWSER_FOR_COOKIES ) ) {
@@ -104,28 +105,15 @@ namespace TCS.YoutubePlayer {
 
             string[] lines = result.StandardOutput.Split( new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries );
             
-            string title;
-            string directUrl;
-            
-            if (settings != null) {
-                // New command builder path - only expects URL
-                if (lines.Length < 1) {
-                    throw new YtDlpException(
-                        $"yt-dlp failed to return URL for '{videoUrl}'.\nStdout: {result.StandardOutput}\nStderr: {result.StandardError}"
-                    );
-                }
-                directUrl = lines[0].Trim();
-                title = null; // Title will be fetched separately if needed
-            } else {
-                // Legacy path - expects both title and URL
-                if (lines.Length < 2) {
-                    throw new YtDlpException(
-                        $"yt-dlp failed to return both title and URL for '{videoUrl}'.\nStdout: {result.StandardOutput}\nStderr: {result.StandardError}"
-                    );
-                }
-                title = lines[0].Trim();
-                directUrl = lines[1].Trim();
+            // Both new and legacy paths now expect title and URL
+            if (lines.Length < 2) {
+                throw new YtDlpException(
+                    $"yt-dlp failed to return both title and URL for '{videoUrl}'.\nStdout: {result.StandardOutput}\nStderr: {result.StandardError}"
+                );
             }
+            
+            string title = lines[0].Trim();
+            string directUrl = lines[1].Trim();
 
             if ( string.IsNullOrWhiteSpace( directUrl ) || !Uri.TryCreate( directUrl, UriKind.Absolute, out _ ) ) {
                 throw new YtDlpException( $"yt-dlp returned an invalid direct URL: {directUrl}" );
