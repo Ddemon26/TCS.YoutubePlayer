@@ -1,8 +1,6 @@
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
-using TCS.YoutubePlayer.Exceptions;
 using TCS.YoutubePlayer.ToolManagement;
 namespace TCS.YoutubePlayer.Configuration {
     public class YtDlpConfigurationManager : IDisposable {
@@ -10,6 +8,14 @@ namespace TCS.YoutubePlayer.Configuration {
 
         public YtDlpConfigurationManager() {
             m_toolDownloadManager = new ToolDownloadManager();
+        }
+
+        public static string GetLibraryPath(LibraryType libraryType) {
+            return libraryType switch {
+                LibraryType.YtDlp => GetYtDlpPath(),
+                LibraryType.FFmpeg => GetFFmpegPath(),
+                _ => throw new NotSupportedException( $"Library type {libraryType} is not supported." ),
+            };
         }
 
         public static string GetYtDlpPath() {
@@ -37,6 +43,14 @@ namespace TCS.YoutubePlayer.Configuration {
                 _ => throw new NotSupportedException(
                     $"Platform {Application.platform} is not supported for FFmpeg."
                 ),
+            };
+        }
+
+        public async Task<string> EnsureLibraryAsync(LibraryType libraryType, CancellationToken cancellationToken = default) {
+            return libraryType switch {
+                LibraryType.YtDlp => await m_toolDownloadManager.EnsureYtDlpAsync( cancellationToken ),
+                LibraryType.FFmpeg => await m_toolDownloadManager.EnsureFFmpegAsync( cancellationToken ),
+                _ => throw new NotSupportedException( $"Library type {libraryType} is not supported." ),
             };
         }
 

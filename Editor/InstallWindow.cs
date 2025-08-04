@@ -69,7 +69,7 @@ namespace TCS.YoutubePlayer {
         async void YtldipInstallPressed() {
             try {
                 if ( m_isOperationInProgress ) return;
-                await InstallDependency( "yt-dlp", async () => await m_toolDownloadManager.EnsureYtDlpAsync( m_cancellationTokenSource.Token ) );
+                await InstallLibrary( LibraryType.YtDlp );
             }
             catch (Exception e) {
                 Debug.LogError( $"Failed to install yt-dlp: {e.Message}" );
@@ -113,17 +113,13 @@ namespace TCS.YoutubePlayer {
 
         void YtldipUninstallPressed() {
             if ( m_isOperationInProgress ) return;
-            ExecuteUninstallOperation( () => {
-                    UninstallYtDlp();
-                    _ = RefreshDependencyStatus();
-                }
-            );
+            UninstallLibrary( LibraryType.YtDlp );
         }
 
         async void FfmpegInstallPressed() {
             try {
                 if ( m_isOperationInProgress ) return;
-                await InstallDependency( "ffmpeg", async () => await m_toolDownloadManager.EnsureFFmpegAsync( m_cancellationTokenSource.Token ) );
+                await InstallLibrary( LibraryType.FFmpeg );
             }
             catch (Exception e) {
                 Debug.LogError( $"Failed to install ffmpeg: {e.Message}" );
@@ -133,12 +129,7 @@ namespace TCS.YoutubePlayer {
         async void FfmpegUpdatePressed() {
             try {
                 if ( m_isOperationInProgress ) return;
-                await UpdateDependency(
-                    "ffmpeg", async () => {
-                        UninstallFfmpeg();
-                        return await m_toolDownloadManager.EnsureFFmpegAsync( m_cancellationTokenSource.Token );
-                    }
-                );
+                await UpdateLibrary( LibraryType.FFmpeg );
             }
             catch (Exception e) {
                 Debug.LogError( $"Failed to update ffmpeg: {e.Message}" );
@@ -147,11 +138,7 @@ namespace TCS.YoutubePlayer {
 
         void FfmpegUninstallPressed() {
             if ( m_isOperationInProgress ) return;
-            ExecuteUninstallOperation( () => {
-                    UninstallFfmpeg();
-                    _ = RefreshDependencyStatus();
-                }
-            );
+            UninstallLibrary( LibraryType.FFmpeg );
         }
 
         async Task RefreshDependencyStatus() {
@@ -183,23 +170,43 @@ namespace TCS.YoutubePlayer {
             }
         }
 
-        bool CheckYtDlpExists() {
+        bool CheckLibraryExists(LibraryType libraryType) {
             try {
-                string ytDlpPath = YtDlpConfigurationManager.GetYtDlpPath();
-                return File.Exists( ytDlpPath );
+                string libraryPath = YtDlpConfigurationManager.GetLibraryPath(libraryType);
+                return File.Exists( libraryPath );
             }
             catch {
                 return false;
             }
         }
 
+        bool CheckYtDlpExists() {
+            return CheckLibraryExists(LibraryType.YtDlp);
+        }
+
         bool CheckFfmpegExists() {
+            return CheckLibraryExists(LibraryType.FFmpeg);
+        }
+
+        async Task InstallLibrary(LibraryType libraryType) {
+            if ( !ValidatePlatformSupport() ) return;
+
+            SetOperationInProgress( true );
             try {
-                string ffmpegPath = YtDlpConfigurationManager.GetFFmpegPath();
-                return File.Exists( ffmpegPath );
+                Debug.Log( $"Installing {libraryType}..." );
+                string result = libraryType switch {
+                    LibraryType.YtDlp => await m_toolDownloadManager.EnsureYtDlpAsync( m_cancellationTokenSource.Token ),
+                    LibraryType.FFmpeg => await m_toolDownloadManager.EnsureFFmpegAsync( m_cancellationTokenSource.Token ),
+                    _ => throw new NotSupportedException( $"Installation not supported for library type {libraryType}" )
+                };
+                Debug.Log( $"{libraryType} installed successfully to: {result}" );
+                await RefreshDependencyStatus();
             }
-            catch {
-                return false;
+            catch (Exception e) {
+                Debug.LogError( $"Failed to install {libraryType}: {e.Message}" );
+            }
+            finally {
+                SetOperationInProgress( false );
             }
         }
 
@@ -221,6 +228,56 @@ namespace TCS.YoutubePlayer {
             }
         }
 
+        async Task UpdateLibrary(LibraryType libraryType) {
+            if ( !ValidatePlatformSupport() ) return;
+
+            SetOperationInProgress( true );
+            try {
+                Debug.Log( $"Updating {libraryType}..." );
+                string result = libraryType switch {
+                    LibraryType.YtDlp => await HandleYtDlpUpdate(),
+                    LibraryType.FFmpeg => await HandleFFmpegUpdate(),
+                    _ => throw new NotSupportedException( $"Update not supported for library type {libraryType}" )
+                };
+                Debug.Log( $"{libraryType} updated successfully to: {result}" );
+                await RefreshDependencyStatus();
+            }
+            catch (Exception e) {
+                Debug.LogError( $"Failed to update {libraryType}: {e.Message}" );
+            }
+            finally {
+                SetOperationInProgress( false );
+            }
+        }
+
+        async Task<string> HandleYtDlpUpdate() {
+            bool ytDlpExists = CheckYtDlpExists();
+            if ( !ytDlpExists ) {
+                return await m_toolDownloadManager.EnsureYtDlpAsync( m_cancellationTokenSource.Token );
+            }
+
+            var updateResult = await YtDlpExternalTool.UpdateYtDlpAsync( m_cancellationTokenSource.Token );
+            switch (updateResult) {
+                case YtDlpUpdateResult.Updated:
+                    Debug.Log( "yt-dlp updated successfully" );
+                    break;
+                case YtDlpUpdateResult.AlreadyUpToDate:
+                    Debug.Log( "yt-dlp is already up to date" );
+                    break;
+                case YtDlpUpdateResult.Failed:
+                    Debug.LogWarning( "yt-dlp update failed, falling back to re-download" );
+                    UninstallYtDlp();
+                    return await m_toolDownloadManager.EnsureYtDlpAsync( m_cancellationTokenSource.Token );
+            }
+
+            return YtDlpConfigurationManager.GetYtDlpPath();
+        }
+
+        async Task<string> HandleFFmpegUpdate() {
+            UninstallFfmpeg();
+            return await m_toolDownloadManager.EnsureFFmpegAsync( m_cancellationTokenSource.Token );
+        }
+
         async Task UpdateDependency(string dependencyName, Func<Task<string>> updateAction) {
             if ( !ValidatePlatformSupport() ) return;
 
@@ -233,6 +290,20 @@ namespace TCS.YoutubePlayer {
             }
             catch (Exception e) {
                 Debug.LogError( $"Failed to update {dependencyName}: {e.Message}" );
+            }
+            finally {
+                SetOperationInProgress( false );
+            }
+        }
+
+        void UninstallLibrary(LibraryType libraryType) {
+            SetOperationInProgress( true );
+            try {
+                UninstallLibraryImpl(libraryType);
+                _ = RefreshDependencyStatus();
+            }
+            catch (Exception e) {
+                Debug.LogError( $"Uninstall operation failed: {e.Message}" );
             }
             finally {
                 SetOperationInProgress( false );
@@ -270,34 +341,31 @@ namespace TCS.YoutubePlayer {
             return true;
         }
 
-        static void UninstallYtDlp() {
+        static void UninstallLibraryImpl(LibraryType libraryType) {
             try {
-                string ytDlpPath = YtDlpConfigurationManager.GetYtDlpPath();
-                string ytDlpDir = Path.GetDirectoryName( ytDlpPath );
+                string libraryPath = YtDlpConfigurationManager.GetLibraryPath(libraryType);
+                string libraryDir = libraryType switch {
+                    LibraryType.YtDlp => Path.GetDirectoryName( libraryPath ),
+                    LibraryType.FFmpeg => Path.GetDirectoryName( Path.GetDirectoryName( libraryPath ) ), // Go up two levels from bin/ffmpeg.exe
+                    _ => throw new NotSupportedException( $"Uninstall not supported for library type {libraryType}" )
+                };
 
-                if ( Directory.Exists( ytDlpDir ) ) {
-                    Directory.Delete( ytDlpDir, true );
-                    Debug.Log( "yt-dlp uninstalled successfully" );
+                if ( Directory.Exists( libraryDir ) ) {
+                    Directory.Delete( libraryDir, true );
+                    Debug.Log( $"{libraryType} uninstalled successfully" );
                 }
             }
             catch (Exception e) {
-                Debug.LogError( $"Failed to uninstall yt-dlp: {e.Message}" );
+                Debug.LogError( $"Failed to uninstall {libraryType}: {e.Message}" );
             }
         }
 
-        static void UninstallFfmpeg() {
-            try {
-                string ffmpegPath = YtDlpConfigurationManager.GetFFmpegPath();
-                string ffmpegDir = Path.GetDirectoryName( Path.GetDirectoryName( ffmpegPath ) ); // Go up two levels from bin/ffmpeg.exe
+        static void UninstallYtDlp() {
+            UninstallLibraryImpl(LibraryType.YtDlp);
+        }
 
-                if ( Directory.Exists( ffmpegDir ) ) {
-                    Directory.Delete( ffmpegDir, true );
-                    Debug.Log( "ffmpeg uninstalled successfully" );
-                }
-            }
-            catch (Exception e) {
-                Debug.LogError( $"Failed to uninstall ffmpeg: {e.Message}" );
-            }
+        static void UninstallFfmpeg() {
+            UninstallLibraryImpl(LibraryType.FFmpeg);
         }
 
         public void OnDestroy() {

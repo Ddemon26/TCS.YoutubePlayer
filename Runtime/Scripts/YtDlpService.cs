@@ -33,7 +33,7 @@ namespace TCS.YoutubePlayer {
         }
 
         public async Task InitializeToolsAsync(CancellationToken cancellationToken = default) {
-            Logger.Log( "[YtDlpService] Initializing external tools..." );
+            Logger.Log( "Initializing external tools..." );
 
             try {
                 Task<string> ytDlpTask = m_configManager.EnsureYtDlpAsync( cancellationToken );
@@ -44,12 +44,12 @@ namespace TCS.YoutubePlayer {
                 string ytDlpPath = await ytDlpTask;
                 string ffmpegPath = await ffmpegTask;
 
-                Logger.Log( "[YtDlpService] Tools initialized successfully:" );
-                Logger.Log( $"[YtDlpService] yt-dlp: {ytDlpPath}" );
-                Logger.Log( $"[YtDlpService] ffmpeg: {ffmpegPath}" );
+                Logger.Log( "Tools initialized successfully:" );
+                Logger.Log( $"yt-dlp: {ytDlpPath}" );
+                Logger.Log( $"ffmpeg: {ffmpegPath}" );
             }
             catch (Exception ex) {
-                Logger.LogError( $"[YtDlpService] Failed to initialize external tools: {ex.Message}" );
+                Logger.LogError( $"Failed to initialize external tools: {ex.Message}" );
                 throw;
             }
         }
@@ -115,7 +115,7 @@ namespace TCS.YoutubePlayer {
             m_mp4Converter.ConvertToMp4Async( hlsUrl, cancellationToken );
 
         public async Task<string> GetCurrentYtDlpVersionAsync(CancellationToken cancellationToken) {
-            Logger.Log( "[YtDlpService] Checking yt-dlp version..." );
+            Logger.Log( "Checking yt-dlp version..." );
 
             string ytDlpExecutablePath = await m_configManager.EnsureYtDlpAsync( cancellationToken );
             var result = await m_processExecutor.RunProcessAsync(
@@ -134,12 +134,12 @@ namespace TCS.YoutubePlayer {
             string version = result.StandardOutput
                 .Split( new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries )[0]
                 .Trim();
-            Logger.Log( $"[YtDlpService] Current yt-dlp version: {version}" );
+            Logger.Log( $"Current yt-dlp version: {version}" );
             return version;
         }
 
         public async Task<YtDlpUpdateResult> UpdateYtDlpAsync(CancellationToken cancellationToken) {
-            Logger.Log( "[YtDlpService] Attempting to update yt-dlp..." );
+            Logger.Log( "Attempting to update yt-dlp..." );
 
             string ytDlpExecutablePath = await m_configManager.EnsureYtDlpAsync( cancellationToken );
             var result = await m_processExecutor.RunProcessAsync(
@@ -153,33 +153,33 @@ namespace TCS.YoutubePlayer {
 
             if ( !result.IsSuccess ) {
                 if ( ContainsUpToDateMessage( stdout ) || ContainsUpToDateMessage( stderr ) ) {
-                    Logger.Log( "[YtDlpService] yt-dlp is already up to date." );
+                    Logger.Log( "yt-dlp is already up to date." );
                     return YtDlpUpdateResult.AlreadyUpToDate;
                 }
 
                 Logger.LogError(
-                    $"[YtDlpService] yt-dlp --update failed (exit code {result.ExitCode}).\n" +
+                    $"yt-dlp --update failed (exit code {result.ExitCode}).\n" +
                     $"Stdout: {stdout}\nStderr: {stderr}"
                 );
                 return YtDlpUpdateResult.Failed;
             }
 
             if ( stdout.Contains( "Updated yt-dlp to" ) || stdout.Contains( "Successfully updated" ) ) {
-                Logger.Log( $"[YtDlpService] yt-dlp updated successfully: {stdout}" );
+                Logger.Log( $"yt-dlp updated successfully: {stdout}" );
                 return YtDlpUpdateResult.Updated;
             }
 
             if ( ContainsUpToDateMessage( stdout ) || ContainsUpToDateMessage( stderr ) ) {
-                Logger.Log( "[YtDlpService] yt-dlp is already up to date." );
+                Logger.Log( "yt-dlp is already up to date." );
                 return YtDlpUpdateResult.AlreadyUpToDate;
             }
 
             if ( !string.IsNullOrWhiteSpace( stderr ) ) {
-                Logger.LogWarning( $"[YtDlpService] yt-dlp --update exited 0 but had stderr:\n{stderr}" );
+                Logger.LogWarning( $"yt-dlp --update exited 0 but had stderr:\n{stderr}" );
             }
 
             Logger.LogWarning(
-                "[YtDlpService] yt-dlp --update finished with exit code 0 but did not explicitly report an update. " +
+                "yt-dlp --update finished with exit code 0 but did not explicitly report an update. " +
                 "Assuming it is already up to date.\n" +
                 $"Stdout: {stdout}"
             );
@@ -190,13 +190,13 @@ namespace TCS.YoutubePlayer {
             var oldVersion = "unknown";
             try {
                 oldVersion = await GetCurrentYtDlpVersionAsync( cancellationToken );
-                Logger.Log( $"[YtDlpService] Current yt-dlp version (before update): {oldVersion}" );
+                Logger.Log( $"Current yt-dlp version (before update): {oldVersion}" );
             }
             catch (YtDlpException ex) {
-                Logger.LogWarning( $"[YtDlpService] Could not determine current yt-dlp version: {ex.Message}" );
+                Logger.LogWarning( $"Could not determine current yt-dlp version: {ex.Message}" );
             }
             catch (OperationCanceledException) {
-                Logger.Log( "[YtDlpService] Version check before update was canceled." );
+                Logger.Log( "Version check before update was canceled." );
                 throw;
             }
 
@@ -207,41 +207,41 @@ namespace TCS.YoutubePlayer {
                 updateResult = await UpdateYtDlpAsync( cancellationToken );
             }
             catch (YtDlpException ex) {
-                Logger.LogError( $"[YtDlpService] yt-dlp update threw an exception: {ex.Message}" );
+                Logger.LogError( $"yt-dlp update threw an exception: {ex.Message}" );
                 updateResult = YtDlpUpdateResult.Failed;
             }
             catch (OperationCanceledException) {
-                Logger.Log( "[YtDlpService] Update process was canceled." );
+                Logger.Log( "Update process was canceled." );
                 throw;
             }
 
             switch (updateResult) {
                 case YtDlpUpdateResult.Updated:
-                    Logger.Log( "[YtDlpService] yt-dlp was updated." );
+                    Logger.Log( "yt-dlp was updated." );
                     try {
                         string newVersion = await GetCurrentYtDlpVersionAsync( cancellationToken );
-                        Logger.Log( $"[YtDlpService] New yt-dlp version (after update): {newVersion}" );
+                        Logger.Log( $"New yt-dlp version (after update): {newVersion}" );
                         if ( oldVersion != "unknown" && oldVersion == newVersion ) {
                             Logger.LogWarning(
-                                $"[YtDlpService] yt-dlp reported an update, but version remains {newVersion} (same as {oldVersion})."
+                                $"yt-dlp reported an update, but version remains {newVersion} (same as {oldVersion})."
                             );
                         }
                     }
                     catch (YtDlpException ex) {
-                        Logger.LogWarning( $"[YtDlpService] Could not get version after update: {ex.Message}" );
+                        Logger.LogWarning( $"Could not get version after update: {ex.Message}" );
                     }
                     catch (OperationCanceledException) {
-                        Logger.Log( "[YtDlpService] Version check after update was canceled." );
+                        Logger.Log( "Version check after update was canceled." );
                     }
 
                     break;
 
                 case YtDlpUpdateResult.AlreadyUpToDate:
-                    Logger.Log( $"[YtDlpService] yt-dlp is already at the latest version (was {oldVersion})." );
+                    Logger.Log( $"yt-dlp is already at the latest version (was {oldVersion})." );
                     break;
 
                 case YtDlpUpdateResult.Failed:
-                    Logger.LogError( $"[YtDlpService] yt-dlp update failed. Version likely remains: {oldVersion}" );
+                    Logger.LogError( $"yt-dlp update failed. Version likely remains: {oldVersion}" );
                     break;
 
                 default:

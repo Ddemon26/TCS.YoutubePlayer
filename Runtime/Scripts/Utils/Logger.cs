@@ -170,7 +170,7 @@ namespace TCS.YoutubePlayer.Utils {
         [Conditional( "UNITY_EDITOR" )]
         [Conditional( "DEVELOPMENT_BUILD" )]
         public static void LogPerformance(string operation, TimeSpan duration) {
-            LogInternal( $"[PERF] {operation} took {duration.TotalMilliseconds:F2}ms", LogType.Log );
+            LogInternal( $"[</b><color=green>PERF</color><b>] {operation} took {duration.TotalMilliseconds:F2}ms", LogType.Log );
         }
 
         //With context

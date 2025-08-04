@@ -7,6 +7,11 @@ using Newtonsoft.Json;
 using TCS.YoutubePlayer.Exceptions;
 
 namespace TCS.YoutubePlayer.ToolManagement {
+    public enum LibraryType {
+        YtDlp,
+        FFmpeg,
+    }
+    
     public class ToolDownloadManager : IDisposable {
         readonly HttpClient m_httpClient;
         readonly string m_toolsDirectory;
@@ -20,6 +25,14 @@ namespace TCS.YoutubePlayer.ToolManagement {
             m_httpClient.DefaultRequestHeaders.Add( "User-Agent", "TCS.YoutubePlayer/1.0" );
             m_toolsDirectory = Application.streamingAssetsPath;
             Directory.CreateDirectory( m_toolsDirectory );
+        }
+        
+        public string LibraryDirectory(LibraryType libraryType) {
+            return libraryType switch {
+                LibraryType.YtDlp => Path.Combine(m_toolsDirectory, "yt-dlp"),
+                LibraryType.FFmpeg => Path.Combine(m_toolsDirectory, "ffmpeg"),
+                _ => throw new NotSupportedException($"Library type {libraryType} is not supported."),
+            };
         }
 
         public bool ShouldUpdateTool(string toolName, string currentVersion = null) {
@@ -142,6 +155,14 @@ namespace TCS.YoutubePlayer.ToolManagement {
 
                 throw new YtDlpException( $"Failed to download and extract FFmpeg: {ex.Message}", ex );
             }
+        }
+
+        public string GetLibraryPath(LibraryType libraryType) {
+            return libraryType switch {
+                LibraryType.YtDlp => GetYtDlpPath(),
+                LibraryType.FFmpeg => GetFFmpegPath(),
+                _ => throw new NotSupportedException( $"Library type {libraryType} is not supported." ),
+            };
         }
 
         public string GetYtDlpPath() {
