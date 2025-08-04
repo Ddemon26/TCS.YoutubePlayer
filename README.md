@@ -89,6 +89,12 @@ For custom tool versions:
 | macOS    | Planned | Manual installation required |
 | Linux    | Planned | Manual installation required |
 
+## Troubleshooting
+
+### Chrome/Edge flags yt-dlp as malicious
+
+Some browsers, like Google Chrome and Microsoft Edge, may incorrectly flag `yt-dlp.exe` as malicious due to its nature as a command-line downloader. This is a false positive. If you encounter issues downloading the tools, using a different browser like Mozilla Firefox is recommended.
+
 ## Contributing
 
 1. Fork the repository
