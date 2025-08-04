@@ -157,5 +157,33 @@ namespace TCS.YoutubePlayer.Configuration {
             if ( m_startTimeSeconds < 0f ) m_startTimeSeconds = 0f;
             if ( m_endTimeSeconds < 0f ) m_endTimeSeconds = 0f;
         }
+        
+        public string GetSettingsSummary() {
+            var summaryBuilder = new System.Text.StringBuilder();
+
+            summaryBuilder.Append( $"Video: {VideoQuality}" );
+            if ( VideoQuality == VideoQuality.Custom ) summaryBuilder.Append( $" ({CustomVideoQuality})" );
+
+            summaryBuilder.Append( $", Audio: {AudioQuality}" );
+            if ( AudioQuality == AudioQuality.Custom ) summaryBuilder.Append( $" ({CustomAudioQuality})" );
+
+            summaryBuilder.Append( $"\nBrowser: {Browser}" );
+            if ( Browser != BrowserType.None ) summaryBuilder.Append( $" ({CustomBrowserPath} - {BrowserProfile})" );
+
+            summaryBuilder.Append( $"\nOutput: {OutputFormat}" );
+            if ( OutputFormat == OutputFormat.Custom ) summaryBuilder.Append( $" ({CustomOutputFormat})" );
+
+            summaryBuilder.Append( $"\nSubtitles: {SubtitleFormat} ({string.Join( ", ", SubtitleLanguages )}), Mode: {SubtitleHandlingMode}" );
+            summaryBuilder.Append( $"\nPlaylist: {PlaylistHandling}, Max Items: {MaxPlaylistItems}, Use Index: {UsePlaylistIndex}" );
+            summaryBuilder.Append( $"\nNetwork: {ConcurrentFragments} fragments, Rate Limit: {RateLimit}, Retries: {Retries}, HLS Native: {UseHlsNative}" );
+            summaryBuilder.Append( $"\nTime: Timeout {TimeoutMinutes} min, Range: {(UseTimeRange ? $"{StartTimeSeconds}s to {EndTimeSeconds}s" : "N/A")}" );
+            summaryBuilder.Append( $"\nFlags: Extract Audio: {ExtractAudioOnly}, Write Info JSON: {WriteInfoJson}, Ignore Errors: {IgnoreErrors}" );
+
+            if ( !string.IsNullOrWhiteSpace( CustomArguments ) ) {
+                summaryBuilder.Append( $"\nCustom Args: {CustomArguments}" );
+            }
+
+            return summaryBuilder.ToString();
+        }
     }
 }

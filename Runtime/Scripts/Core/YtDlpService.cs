@@ -57,9 +57,6 @@ namespace TCS.YoutubePlayer {
 
         public string GetCacheTitle(string videoUrl) => m_urlCache.GetCacheTitle( videoUrl );
 
-        public async Task<string> GetDirectUrlAsync(string videoUrl, CancellationToken cancellationToken) {
-            return await GetDirectUrlAsync( videoUrl, null, cancellationToken );
-        }
 
         public async Task<string> GetDirectUrlAsync(string videoUrl, YtDlpSettings settings, CancellationToken cancellationToken) {
             await m_configManager.EnsureYtDlpAsync( cancellationToken );
@@ -69,6 +66,7 @@ namespace TCS.YoutubePlayer {
             string cacheKey = m_urlProcessor.TryExtractVideoId( videoUrl ) ?? videoUrl;
 
             if ( m_urlCache.TryGetCachedEntry( cacheKey, out var existingEntry ) ) {
+                Logger.Log( $"{settings?.GetSettingsSummary()}" );
                 return existingEntry.DirectUrl;
             }
 
@@ -76,6 +74,7 @@ namespace TCS.YoutubePlayer {
 
             string arguments;
             if ( settings != null ) {
+                Logger.Log( $"{settings.GetSettingsSummary()}" );
                 // Use title command to get both title and URL for caching
                 arguments = m_commandBuilder.BuildGetTitleCommand( trimUrl, settings );
             }

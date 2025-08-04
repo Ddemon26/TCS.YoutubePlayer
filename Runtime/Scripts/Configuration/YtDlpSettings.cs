@@ -42,6 +42,8 @@ namespace TCS.YoutubePlayer.Configuration {
 
     [Serializable] public class YtDlpSettings {
         [SerializeField] YtDlpSettingsData m_data = new();
+        
+        public string GetSettingsSummary() => m_data.GetSettingsSummary();
 
         public VideoQuality VideoQuality => m_data.VideoQuality;
         public AudioQuality AudioQuality => m_data.AudioQuality;
