@@ -13,7 +13,7 @@ namespace TCS.YoutubePlayer.Caching {
         readonly TimeSpan m_defaultCacheExpiration = TimeSpan.FromHours( 4 );
         readonly string m_cacheFilePath;
 
-        string GetCacheFilePath() {
+        static string GetCacheFilePath() {
             #if UNITY_EDITOR
             // In Unity Editor, find the package root dynamically
             string currentFilePath = GetCurrentFilePath();
@@ -33,7 +33,7 @@ namespace TCS.YoutubePlayer.Caching {
             #endif
         }
 
-        string FindPackageRoot(string filePath) {
+        static string FindPackageRoot(string filePath) {
             string currentDir = Path.GetDirectoryName( filePath );
 
             // Look for package indicators: package.json, TCS.YoutubePlayer.asmdef, or Runtime folder with specific structure

@@ -1,22 +1,8 @@
 using System.IO;
-using System.Threading;
 using TCS.YoutubePlayer.ToolManagement;
-namespace TCS.YoutubePlayer.Configuration {
-    public class LibraryManager : IDisposable {
-        readonly ToolDownloadManager m_toolDownloadManager;
 
-        public LibraryManager() {
-            m_toolDownloadManager = new ToolDownloadManager();
-        }
-
-        public static string GetLibraryPath(LibraryType libraryType) {
-            return libraryType switch {
-                LibraryType.YtDlp => GetYtDlpPath(),
-                LibraryType.FFmpeg => GetFFmpegPath(),
-                _ => throw new NotSupportedException( $"Library type {libraryType} is not supported." ),
-            };
-        }
-
+namespace TCS.YoutubePlayer.Utils {
+    public static class PlatformPathResolver {
         public static string GetYtDlpPath() {
             return Application.platform switch {
                 RuntimePlatform.WindowsPlayer or RuntimePlatform.WindowsEditor
@@ -45,20 +31,23 @@ namespace TCS.YoutubePlayer.Configuration {
             };
         }
 
-        public async Task<string> EnsureLibraryAsync(LibraryType libraryType, CancellationToken cancellationToken = default) {
+        public static string GetLibraryPath(LibraryType libraryType) {
             return libraryType switch {
-                LibraryType.YtDlp => await m_toolDownloadManager.EnsureYtDlpAsync( cancellationToken ),
-                LibraryType.FFmpeg => await m_toolDownloadManager.EnsureFFmpegAsync( cancellationToken ),
+                LibraryType.YtDlp => GetYtDlpPath(),
+                LibraryType.FFmpeg => GetFFmpegPath(),
                 _ => throw new NotSupportedException( $"Library type {libraryType} is not supported." ),
             };
         }
 
-        public async Task<string> EnsureYtDlpAsync(CancellationToken cancellationToken = default)
-            => await m_toolDownloadManager.EnsureYtDlpAsync( cancellationToken );
-
-        public async Task<string> EnsureFFmpegAsync(CancellationToken cancellationToken = default)
-            => await m_toolDownloadManager.EnsureFFmpegAsync( cancellationToken );
-
-        public void Dispose() => m_toolDownloadManager?.Dispose();
+        public static bool CheckLibraryExists(LibraryType libraryType) {
+            try {
+                string libraryPath = GetLibraryPath( libraryType );
+                return File.Exists( libraryPath );
+            }
+            catch (Exception e) {
+                Logger.LogError( $"Error checking {libraryType} path: {e.Message}" );
+                return false;
+            }
+        }
     }
 }

@@ -5,20 +5,17 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using TCS.YoutubePlayer.ProcessExecution;
-using TCS.YoutubePlayer.ToolManagement;
-using TCS.YoutubePlayer.UrlProcessing;
+using TCS.YoutubePlayer.Utils;
 
 namespace TCS.YoutubePlayer.VideoConversion {
     public class Mp4Converter : IDisposable {
         readonly ProcessExecutor m_processExecutor;
-        readonly YouTubeUrlProcessor m_urlProcessor;
         readonly ConcurrentDictionary<string, Mp4ConversionEntry> m_mp4ConversionCache = new();
 
         const int MP4_CACHE_LIMIT = 1;
 
-        public Mp4Converter(ProcessExecutor processExecutor, YouTubeUrlProcessor urlProcessor) {
+        public Mp4Converter(ProcessExecutor processExecutor) {
             m_processExecutor = processExecutor ?? throw new ArgumentNullException( nameof(processExecutor) );
-            m_urlProcessor = urlProcessor ?? throw new ArgumentNullException( nameof(urlProcessor) );
         }
 
         public async Task<string> ConvertToMp4Async(string hlsUrl, CancellationToken cancellationToken) {
@@ -85,8 +82,8 @@ namespace TCS.YoutubePlayer.VideoConversion {
                 File.Delete( outputFilePath );
             }
 
-            string sanitizedHlsUrl = YouTubeUrlProcessor.SanitizeForShell( hlsUrl );
-            string sanitizedOutputPath = YouTubeUrlProcessor.SanitizeForShell( outputFilePath );
+            string sanitizedHlsUrl = UrlUtilities.SanitizeForShell( hlsUrl );
+            string sanitizedOutputPath = UrlUtilities.SanitizeForShell( outputFilePath );
 
             var result = await m_processExecutor.RunProcessAsync(
                 "ffmpeg",
@@ -106,9 +103,8 @@ namespace TCS.YoutubePlayer.VideoConversion {
             Logger.Log( $"HLS URL converted to MP4 at {outputFilePath}" );
         }
 
-        void AddToMp4Cache(string hlsUrl, string outputFilePath) {
-            m_mp4ConversionCache[hlsUrl] = new Mp4ConversionEntry( outputFilePath, DateTime.UtcNow );
-        }
+        void AddToMp4Cache(string hlsUrl, string outputFilePath)
+            => m_mp4ConversionCache[hlsUrl] = new Mp4ConversionEntry( outputFilePath, DateTime.UtcNow );
 
         static string SanitizeUrlToFileName(string url) {
             using var sha256 = SHA256.Create();

@@ -1,8 +1,8 @@
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using TCS.YoutubePlayer.Configuration;
 using TCS.YoutubePlayer.ToolManagement;
+using TCS.YoutubePlayer.Utils;
 
 namespace TCS.YoutubePlayer {
     public class InstallWindow : EditorWindow {
@@ -15,7 +15,7 @@ namespace TCS.YoutubePlayer {
         CancellationTokenSource m_cancellationTokenSource;
         bool m_isOperationInProgress;
 
-        [MenuItem( "Tools/Install/Youtube Dependencies" )]
+        [MenuItem( "Tools/TCS/Youtube Dependencies Installer" )]
         public static void OpenWindow() {
             var wnd = GetWindow<InstallWindow>();
             wnd.titleContent = new GUIContent( "InstallWindow" );
@@ -102,7 +102,7 @@ namespace TCS.YoutubePlayer {
                                 return await m_toolDownloadManager.EnsureYtDlpAsync( m_cancellationTokenSource.Token );
                         }
 
-                        return LibraryManager.GetYtDlpPath();
+                        return PlatformPathResolver.GetYtDlpPath();
                     }
                 );
             }
@@ -172,7 +172,7 @@ namespace TCS.YoutubePlayer {
 
         static bool CheckLibraryExists(LibraryType libraryType) {
             try {
-                string libraryPath = LibraryManager.GetLibraryPath( libraryType );
+                string libraryPath = PlatformPathResolver.GetLibraryPath( libraryType );
                 return File.Exists( libraryPath );
             }
             catch {
@@ -266,7 +266,7 @@ namespace TCS.YoutubePlayer {
                     return await m_toolDownloadManager.EnsureYtDlpAsync( m_cancellationTokenSource.Token );
             }
 
-            return LibraryManager.GetYtDlpPath();
+            return PlatformPathResolver.GetYtDlpPath();
         }
 
         async Task<string> HandleFFmpegUpdate() {
@@ -339,7 +339,7 @@ namespace TCS.YoutubePlayer {
 
         static void UninstallLibraryImpl(LibraryType libraryType) {
             try {
-                string libraryPath = LibraryManager.GetLibraryPath( libraryType );
+                string libraryPath = PlatformPathResolver.GetLibraryPath( libraryType );
                 string libraryDir = libraryType switch {
                     LibraryType.YtDlp => Path.GetDirectoryName( libraryPath ),
                     LibraryType.FFmpeg => Path.GetDirectoryName( Path.GetDirectoryName( libraryPath ) ), // Go up two levels from bin/ffmpeg.exe

@@ -3,6 +3,7 @@ using System.IO.Compression;
 using System.Net.Http;
 using System.Threading;
 using Newtonsoft.Json;
+using TCS.YoutubePlayer.Utils;
 
 namespace TCS.YoutubePlayer.ToolManagement {
     public enum LibraryType { YtDlp, FFmpeg, }
@@ -90,7 +91,7 @@ namespace TCS.YoutubePlayer.ToolManagement {
         }
 
         public async Task<string> EnsureYtDlpAsync(CancellationToken cancellationToken = default) {
-            string ytDlpPath = GetYtDlpPath();
+            string ytDlpPath = PlatformPathResolver.GetYtDlpPath();
 
             if ( File.Exists( ytDlpPath ) ) {
                 Logger.Log( $"yt-dlp already exists at: {ytDlpPath}" );
@@ -113,7 +114,7 @@ namespace TCS.YoutubePlayer.ToolManagement {
         }
 
         public async Task<string> EnsureFFmpegAsync(CancellationToken cancellationToken = default) {
-            string ffmpegPath = GetFFmpegPath();
+            string ffmpegPath = PlatformPathResolver.GetFFmpegPath();
 
             if ( File.Exists( ffmpegPath ) ) {
                 Logger.Log( $"FFmpeg already exists at: {ffmpegPath}" );
@@ -152,37 +153,6 @@ namespace TCS.YoutubePlayer.ToolManagement {
             }
         }
 
-        public string GetLibraryPath(LibraryType libraryType) {
-            return libraryType switch {
-                LibraryType.YtDlp => GetYtDlpPath(),
-                LibraryType.FFmpeg => GetFFmpegPath(),
-                _ => throw new NotSupportedException( $"Library type {libraryType} is not supported." ),
-            };
-        }
-
-        string GetYtDlpPath() {
-            return Application.platform switch {
-                RuntimePlatform.WindowsPlayer or RuntimePlatform.WindowsEditor
-                    => Path.Combine( m_toolsDirectory, "yt-dlp", "Windows", "yt-dlp.exe" ),
-                RuntimePlatform.OSXPlayer or RuntimePlatform.OSXEditor
-                    => Path.Combine( m_toolsDirectory, "yt-dlp", "macOS", "yt-dlp" ),
-                RuntimePlatform.LinuxPlayer or RuntimePlatform.LinuxEditor
-                    => Path.Combine( m_toolsDirectory, "yt-dlp", "Linux", "yt-dlp" ),
-                _ => throw new NotSupportedException( $"Platform {Application.platform} is not supported for yt-dlp." ),
-            };
-        }
-
-        string GetFFmpegPath() {
-            return Application.platform switch {
-                RuntimePlatform.WindowsPlayer or RuntimePlatform.WindowsEditor
-                    => Path.Combine( m_toolsDirectory, "ffmpeg", "Windows", "bin", "ffmpeg.exe" ),
-                RuntimePlatform.OSXPlayer or RuntimePlatform.OSXEditor
-                    => Path.Combine( m_toolsDirectory, "ffmpeg", "macOS", "bin", "ffmpeg" ),
-                RuntimePlatform.LinuxPlayer or RuntimePlatform.LinuxEditor
-                    => Path.Combine( m_toolsDirectory, "ffmpeg", "Linux", "bin", "ffmpeg" ),
-                _ => throw new NotSupportedException( $"Platform {Application.platform} is not supported for FFmpeg." ),
-            };
-        }
 
         async Task DownloadFileAsync(string url, string destinationPath, CancellationToken cancellationToken) {
             string directoryName = Path.GetDirectoryName( destinationPath );

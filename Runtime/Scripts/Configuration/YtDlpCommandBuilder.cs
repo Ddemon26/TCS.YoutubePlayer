@@ -13,9 +13,8 @@ namespace TCS.YoutubePlayer.Configuration {
     public class YtDlpCommandBuilder : IYtDlpCommandBuilder {
         readonly YtDlpSettings m_defaultSettings;
 
-        public YtDlpCommandBuilder(YtDlpSettings defaultSettings = null) {
-            m_defaultSettings = defaultSettings ?? new YtDlpSettings();
-        }
+        public YtDlpCommandBuilder(YtDlpSettings defaultSettings = null)
+            => m_defaultSettings = defaultSettings ?? new YtDlpSettings();
 
         public string BuildGetDirectUrlCommand(string videoUrl, YtDlpSettings settings = null) {
             var effectiveSettings = settings ?? m_defaultSettings;
@@ -70,7 +69,6 @@ namespace TCS.YoutubePlayer.Configuration {
             args.Append( $"-o \"{outputPath}\" " );
 
             AppendBrowserSettings( args, effectiveSettings );
-            AppendSubtitleSettings( args, effectiveSettings );
             AppendNetworkSettings( args, effectiveSettings );
             AppendTimeRangeSettings( args, effectiveSettings );
             AppendPlaylistSettings( args, effectiveSettings );
@@ -160,26 +158,6 @@ namespace TCS.YoutubePlayer.Configuration {
             string audioFormat = GetAudioFormatFromQuality( settings.AudioQuality );
             if ( !string.IsNullOrEmpty( audioFormat ) ) {
                 args.Append( $"--audio-format {audioFormat} " );
-            }
-        }
-
-        static void AppendSubtitleSettings(StringBuilder args, YtDlpSettings settings) {
-            if ( settings.SubtitleFormat == SubtitleFormat.None ) return;
-
-            if ( settings.SubtitleLanguages.Any() ) {
-                string languages = string.Join( ",", settings.SubtitleLanguages );
-                args.Append( $"--sub-langs \"{languages}\" " );
-            }
-
-            string subtitleFormat = GetSubtitleFormatString( settings.SubtitleFormat );
-            if ( !string.IsNullOrEmpty( subtitleFormat ) ) {
-                args.Append( $"--sub-format \"{subtitleFormat}\" " );
-            }
-
-            args.Append( "--write-subs " );
-
-            if ( settings.EmbedSubtitles ) {
-                args.Append( "--embed-subs " );
             }
         }
 
@@ -298,16 +276,6 @@ namespace TCS.YoutubePlayer.Configuration {
                 AudioQuality.High => "mp3",
                 AudioQuality.Best => "best",
                 _ => "best",
-            };
-        }
-
-        static string GetSubtitleFormatString(SubtitleFormat format) {
-            return format switch {
-                SubtitleFormat.Srt => "srt",
-                SubtitleFormat.Ass => "ass",
-                SubtitleFormat.Vtt => "vtt",
-                SubtitleFormat.Best => "best",
-                _ => "",
             };
         }
 

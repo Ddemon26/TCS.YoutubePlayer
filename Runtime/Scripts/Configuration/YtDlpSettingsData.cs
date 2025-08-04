@@ -1,5 +1,3 @@
-using System.Linq;
-
 namespace TCS.YoutubePlayer.Configuration {
     [Serializable] public class YtDlpSettingsData {
         [Header( "Video Quality" )]
@@ -18,11 +16,6 @@ namespace TCS.YoutubePlayer.Configuration {
         [Header( "Output Format" )]
         public OutputFormat m_outputFormat = OutputFormat.Default;
         public string m_customOutputFormat = "";
-
-        [Header( "Subtitles" )]
-        public SubtitleFormat m_subtitleFormat = SubtitleFormat.None;
-        public string[] m_subtitleLanguages = { "en" };
-        public bool m_embedSubtitles = false;
 
         [Header( "Download Settings" )]
         public bool m_extractAudioOnly = false;
@@ -61,9 +54,6 @@ namespace TCS.YoutubePlayer.Configuration {
         public string BrowserProfile => m_browserProfile;
         public OutputFormat OutputFormat => m_outputFormat;
         public string CustomOutputFormat => m_customOutputFormat;
-        public SubtitleFormat SubtitleFormat => m_subtitleFormat;
-        public string[] SubtitleLanguages => m_subtitleLanguages;
-        public bool EmbedSubtitles => m_embedSubtitles;
         public bool ExtractAudioOnly => m_extractAudioOnly;
         public bool UsePlaylistIndex => m_usePlaylistIndex;
         public PlaylistHandling PlaylistHandling => m_playlistHandling;
@@ -94,9 +84,6 @@ namespace TCS.YoutubePlayer.Configuration {
             m_browserProfile = other.m_browserProfile;
             m_outputFormat = other.m_outputFormat;
             m_customOutputFormat = other.m_customOutputFormat;
-            m_subtitleFormat = other.m_subtitleFormat;
-            m_subtitleLanguages = other.m_subtitleLanguages?.ToArray() ?? Array.Empty<string>();
-            m_embedSubtitles = other.m_embedSubtitles;
             m_extractAudioOnly = other.m_extractAudioOnly;
             m_usePlaylistIndex = other.m_usePlaylistIndex;
             m_playlistHandling = other.m_playlistHandling;
@@ -140,8 +127,6 @@ namespace TCS.YoutubePlayer.Configuration {
             m_videoQuality = VideoQuality.Custom,
             m_customVideoQuality = "bestvideo[height<=1080]+bestaudio/best[height<=1080]",
             m_outputFormat = OutputFormat.Mp4,
-            m_subtitleFormat = SubtitleFormat.Srt,
-            m_subtitleLanguages = new[] { "en" },
             m_timeoutMinutes = 10f,
         };
 
@@ -151,6 +136,33 @@ namespace TCS.YoutubePlayer.Configuration {
             if ( m_timeoutMinutes < 0.1f ) m_timeoutMinutes = 0.1f;
             if ( m_startTimeSeconds < 0f ) m_startTimeSeconds = 0f;
             if ( m_endTimeSeconds < 0f ) m_endTimeSeconds = 0f;
+        }
+        
+        public string GetSettingsSummary() {
+            var summaryBuilder = new System.Text.StringBuilder();
+
+            summaryBuilder.Append( $"Video: {VideoQuality}" );
+            if ( VideoQuality == VideoQuality.Custom ) summaryBuilder.Append( $" ({CustomVideoQuality})" );
+
+            summaryBuilder.Append( $", Audio: {AudioQuality}" );
+            if ( AudioQuality == AudioQuality.Custom ) summaryBuilder.Append( $" ({CustomAudioQuality})" );
+
+            summaryBuilder.Append( $"\nBrowser: {Browser}" );
+            if ( Browser != BrowserType.None ) summaryBuilder.Append( $" ({CustomBrowserPath} - {BrowserProfile})" );
+
+            summaryBuilder.Append( $"\nOutput: {OutputFormat}" );
+            if ( OutputFormat == OutputFormat.Custom ) summaryBuilder.Append( $" ({CustomOutputFormat})" );
+
+            summaryBuilder.Append( $"\nPlaylist: {PlaylistHandling}, Max Items: {MaxPlaylistItems}, Use Index: {UsePlaylistIndex}" );
+            summaryBuilder.Append( $"\nNetwork: {ConcurrentFragments} fragments, Rate Limit: {RateLimit}, Retries: {Retries}, HLS Native: {UseHlsNative}" );
+            summaryBuilder.Append( $"\nTime: Timeout {TimeoutMinutes} min, Range: {(UseTimeRange ? $"{StartTimeSeconds}s to {EndTimeSeconds}s" : "N/A")}" );
+            summaryBuilder.Append( $"\nFlags: Extract Audio: {ExtractAudioOnly}, Write Info JSON: {WriteInfoJson}, Ignore Errors: {IgnoreErrors}" );
+
+            if ( !string.IsNullOrWhiteSpace( CustomArguments ) ) {
+                summaryBuilder.Append( $"\nCustom Args: {CustomArguments}" );
+            }
+
+            return summaryBuilder.ToString();
         }
     }
 }
