@@ -1,6 +1,9 @@
 using System.IO;
 using System.Threading;
 using TCS.YoutubePlayer.Configuration;
+using TCS.YoutubePlayer.ProcessExecution;
+using TCS.YoutubePlayer.Subtitles;
+using TCS.YoutubePlayer.UrlProcessing;
 using UnityEngine.Video;
 namespace TCS.YoutubePlayer {
     [RequireComponent( typeof(VideoPlayer) )]
@@ -35,6 +38,11 @@ namespace TCS.YoutubePlayer {
         string m_currentVideoUrl; // To store the original URL, we attempted to play
         readonly CancellationTokenSource m_cts = new();
 
+        // Subtitle components
+        SubtitleTracker m_subtitleTracker;
+        SubtitleBurner m_subtitleBurner;
+        YouTubeUrlProcessor m_urlProcessor;
+
         bool m_isInitialized;
         bool m_initializationFailed;
 
@@ -59,6 +67,12 @@ namespace TCS.YoutubePlayer {
 
                 // Initialize configuration system
                 InitializeConfiguration();
+
+                // Initialize subtitle components
+                InitializeSubtitleComponents();
+
+                // Initialize URL processor
+                m_urlProcessor = new YouTubeUrlProcessor();
 
                 // Start initialization asynchronously but don't await in Awake
                 await InitializeAsync();
@@ -123,6 +137,25 @@ namespace TCS.YoutubePlayer {
             }
         }
 
+        void InitializeSubtitleComponents() {
+            try {
+                // Get or create SubtitleTracker component for Unity display mode
+                m_subtitleTracker = GetComponent<SubtitleTracker>();
+                if ( m_subtitleTracker == null ) {
+                    m_subtitleTracker = gameObject.AddComponent<SubtitleTracker>();
+                }
+
+                // Initialize subtitle burner for FFmpeg burning mode  
+                var processExecutor = new ProcessExecutor(LibraryManager.GetFFmpegPath());
+                m_subtitleBurner = new SubtitleBurner(processExecutor);
+
+                Logger.Log( "Subtitle components initialized successfully" );
+            }
+            catch (Exception e) {
+                Logger.LogWarning( $"Failed to initialize subtitle components: {e.Message}" );
+            }
+        }
+
         /// <summary>
         /// Plays a YouTube video from the specified URL. Supports both streaming and download modes.
         /// </summary>
@@ -163,6 +196,9 @@ namespace TCS.YoutubePlayer {
                     Logger.LogError( "Failed to get direct URL from yt-dlp" );
                     return;
                 }
+
+                // Handle subtitle processing based on configuration
+                await ProcessSubtitlesAsync( url, directUrlAsync );
 
                 if ( IsMp4Stream( directUrlAsync ) && m_isAllowedToDownload ) {
                     Logger.Log( $"Detected Mp4 stream: {directUrlAsync}" );
@@ -261,6 +297,9 @@ namespace TCS.YoutubePlayer {
                     }
                 }
 
+                // Clean up subtitle components
+                m_subtitleBurner = null;
+
                 if ( !m_cts.IsCancellationRequested ) {
                     m_cts.Cancel();
                 }
@@ -301,6 +340,191 @@ namespace TCS.YoutubePlayer {
 
             m_profileManager.SaveProfile( profileName, m_currentSettings, description );
             Logger.Log( $"Saved current settings as profile '{profileName}'" );
+        }
+
+        async Task ProcessSubtitlesAsync(string videoUrl, string directUrl) {
+            try {
+                if ( m_currentSettings == null || m_currentSettings.SubtitleFormat == SubtitleFormat.None ) {
+                    return; // No subtitles requested
+                }
+
+                var handlingMode = m_currentSettings.SubtitleHandlingMode;
+                
+                // Handle backward compatibility
+                if ( handlingMode == SubtitleHandlingMode.None && m_currentSettings.SubtitleFormat != SubtitleFormat.None ) {
+                    handlingMode = m_currentSettings.EmbedSubtitles ? SubtitleHandlingMode.EmbedSoft : SubtitleHandlingMode.UnityDisplay;
+                }
+
+                if ( handlingMode == SubtitleHandlingMode.None ) {
+                    return; // No subtitle processing needed
+                }
+
+                Logger.Log( $"Processing subtitles in mode: {handlingMode}" );
+
+                switch (handlingMode) {
+                    case SubtitleHandlingMode.UnityDisplay:
+                        await ProcessUnityDisplaySubtitlesAsync( videoUrl );
+                        break;
+
+                    case SubtitleHandlingMode.BurnHard:
+                        await ProcessBurnSubtitlesAsync( videoUrl, directUrl );
+                        break;
+
+                    case SubtitleHandlingMode.EmbedSoft:
+                        Logger.Log( "Soft embedding subtitles (handled by yt-dlp command generation)" );
+                        break;
+
+                    default:
+                        Logger.LogWarning( $"Unknown subtitle handling mode: {handlingMode}" );
+                        break;
+                }
+            }
+            catch (Exception e) {
+                Logger.LogError( $"Error processing subtitles: {e.Message}" );
+            }
+        }
+
+        async Task ProcessUnityDisplaySubtitlesAsync(string videoUrl) {
+            try {
+                if ( m_subtitleTracker == null ) {
+                    Logger.LogWarning( "SubtitleTracker component not available for Unity display mode" );
+                    return;
+                }
+
+                Logger.Log( "Searching for subtitle files for Unity display..." );
+
+                // Look for subtitle files that may have been downloaded
+                string videoId = m_urlProcessor.TryExtractVideoId( videoUrl );
+                if ( string.IsNullOrEmpty( videoId ) ) {
+                    Logger.LogWarning( "Could not extract video ID from URL for subtitle search" );
+                    return;
+                }
+
+                // Search for subtitle files in common locations
+                List<string> subtitleFiles = await FindSubtitleFilesAsync( videoId );
+
+                if ( subtitleFiles.Count == 0 ) {
+                    Logger.LogWarning( "No subtitle files found for Unity display. Ensure yt-dlp downloads subtitle files." );
+                    return;
+                }
+
+                // Load the first available subtitle file
+                string subtitleFile = subtitleFiles[0];
+                Logger.Log( $"Loading subtitle file for Unity display: {subtitleFile}" );
+
+                bool loaded = await m_subtitleTracker.LoadSubtitleFileAsync( subtitleFile );
+                if ( loaded ) {
+                    Logger.Log( "Subtitle file loaded successfully for Unity display" );
+                    // The SubtitleTracker automatically connects to VideoPlayer via Awake() method
+                }
+                else {
+                    Logger.LogError( $"Failed to load subtitle file: {subtitleFile}" );
+                }
+            }
+            catch (Exception e) {
+                Logger.LogError( $"Error processing Unity display subtitles: {e.Message}" );
+            }
+        }
+
+        async Task ProcessBurnSubtitlesAsync(string videoUrl, string directUrl) {
+            try {
+                if ( m_subtitleBurner == null ) {
+                    Logger.LogWarning( "SubtitleBurner not available for burning mode" );
+                    return;
+                }
+
+                // Check if FFmpeg is available
+                if ( !CheckFfmpegExists() ) {
+                    Logger.LogWarning( "FFmpeg is not installed. Subtitle burning requires FFmpeg. Please install FFmpeg to use this feature." );
+                    return;
+                }
+
+                Logger.Log( "Processing subtitle burning with FFmpeg..." );
+
+                string videoId = m_urlProcessor.TryExtractVideoId( videoUrl );
+                if ( string.IsNullOrEmpty( videoId ) ) {
+                    Logger.LogWarning( "Could not extract video ID from URL for subtitle burning" );
+                    return;
+                }
+
+                // Search for subtitle files
+                List<string> subtitleFiles = await FindSubtitleFilesAsync( videoId );
+
+                if ( subtitleFiles.Count == 0 ) {
+                    Logger.LogWarning( "No subtitle files found for burning. Ensure yt-dlp downloads subtitle files." );
+                    return;
+                }
+
+                string subtitleFile = subtitleFiles[0];
+                string outputPath = Path.Combine( Path.GetTempPath(), $"{videoId}_with_subtitles.mp4" );
+
+                Logger.Log( $"Burning subtitles from {subtitleFile} into video..." );
+
+                bool success = await m_subtitleBurner.BurnSubtitlesAsync( 
+                    directUrl, 
+                    subtitleFile, 
+                    outputPath, 
+                    m_cts.Token 
+                );
+
+                if ( success ) {
+                    Logger.Log( $"Subtitle burning completed successfully: {outputPath}" );
+                    // Note: The burned video could be used here instead of the original
+                }
+                else {
+                    Logger.LogError( "Subtitle burning failed" );
+                }
+            }
+            catch (Exception e) {
+                Logger.LogError( $"Error processing subtitle burning: {e.Message}" );
+            }
+        }
+
+
+        async Task<List<string>> FindSubtitleFilesAsync(string videoId) {
+            // Get Unity paths on main thread before switching to background thread
+            string persistentDataPath = Application.persistentDataPath;
+            string temporaryCachePath = Application.temporaryCachePath;
+            
+            return await Task.Run( () => {
+                var subtitleFiles = new List<string>();
+
+                try {
+                    // Search in common directories where yt-dlp might save subtitle files
+                    string[] searchPaths = {
+                        Path.GetTempPath(),
+                        Environment.GetFolderPath( Environment.SpecialFolder.Desktop ),
+                        Environment.GetFolderPath( Environment.SpecialFolder.MyDocuments ),
+                        persistentDataPath,
+                        temporaryCachePath
+                    };
+
+                    string[] extensions = { ".srt", ".vtt", ".ass", ".ssa" };
+
+                    foreach (string searchPath in searchPaths) {
+                        if ( !Directory.Exists( searchPath ) ) continue;
+
+                        foreach (string extension in extensions) {
+                            string pattern = $"*{videoId}*{extension}";
+                            try {
+                                string[] files = Directory.GetFiles( searchPath, pattern, SearchOption.TopDirectoryOnly );
+                                subtitleFiles.AddRange( files );
+                            }
+                            catch (Exception e) {
+                                Logger.LogWarning( $"Error searching for subtitle files in {searchPath}: {e.Message}" );
+                            }
+                        }
+                    }
+
+                    // Also use the SubtitleParser's find method if we have a video file path
+                    // This is a placeholder - in a real scenario, we'd need the actual video file path
+                }
+                catch (Exception e) {
+                    Logger.LogError( $"Error finding subtitle files: {e.Message}" );
+                }
+
+                return subtitleFiles;
+            } );
         }
     }
 }

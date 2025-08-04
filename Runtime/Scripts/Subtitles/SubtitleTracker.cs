@@ -25,7 +25,6 @@ namespace TCS.YoutubePlayer.Subtitles {
         SubtitleEntry? m_currentEntry;
         VideoPlayer m_videoPlayer;
         
-        bool m_isPlaying = false;
         float m_lastUpdateTime = -1f;
 
         public bool IsTrackLoaded => m_activeTrack != null;
@@ -54,7 +53,7 @@ namespace TCS.YoutubePlayer.Subtitles {
             UpdateSubtitle(currentTime);
         }
 
-        async Task<bool> LoadSubtitleFileAsync(string filePath, string language = null) {
+        public async Task<bool> LoadSubtitleFileAsync(string filePath, string language = null) {
             try {
                 string lang = language ?? ExtractLanguageFromFilename(filePath) ?? m_preferredLanguage;
                 var track = await SubtitleParser.ParseFileAsync(filePath, lang);
