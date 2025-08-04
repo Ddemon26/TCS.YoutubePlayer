@@ -4,8 +4,6 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
-using TCS.YoutubePlayer.Exceptions;
 using TCS.YoutubePlayer.ProcessExecution;
 using TCS.YoutubePlayer.ToolManagement;
 using TCS.YoutubePlayer.UrlProcessing;

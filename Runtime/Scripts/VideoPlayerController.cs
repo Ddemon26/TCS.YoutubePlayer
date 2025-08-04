@@ -1,4 +1,3 @@
-using System.Threading.Tasks;
 using UnityEngine.Video;
 namespace TCS.YoutubePlayer {
     [RequireComponent( typeof(VideoPlayer) )]

@@ -102,7 +102,7 @@ namespace TCS.YoutubePlayer {
                                 return await m_toolDownloadManager.EnsureYtDlpAsync( m_cancellationTokenSource.Token );
                         }
 
-                        return YtDlpConfigurationManager.GetYtDlpPath();
+                        return LibraryManager.GetYtDlpPath();
                     }
                 );
             }
@@ -172,7 +172,7 @@ namespace TCS.YoutubePlayer {
 
         bool CheckLibraryExists(LibraryType libraryType) {
             try {
-                string libraryPath = YtDlpConfigurationManager.GetLibraryPath(libraryType);
+                string libraryPath = LibraryManager.GetLibraryPath(libraryType);
                 return File.Exists( libraryPath );
             }
             catch {
@@ -270,7 +270,7 @@ namespace TCS.YoutubePlayer {
                     return await m_toolDownloadManager.EnsureYtDlpAsync( m_cancellationTokenSource.Token );
             }
 
-            return YtDlpConfigurationManager.GetYtDlpPath();
+            return LibraryManager.GetYtDlpPath();
         }
 
         async Task<string> HandleFFmpegUpdate() {
@@ -343,7 +343,7 @@ namespace TCS.YoutubePlayer {
 
         static void UninstallLibraryImpl(LibraryType libraryType) {
             try {
-                string libraryPath = YtDlpConfigurationManager.GetLibraryPath(libraryType);
+                string libraryPath = LibraryManager.GetLibraryPath(libraryType);
                 string libraryDir = libraryType switch {
                     LibraryType.YtDlp => Path.GetDirectoryName( libraryPath ),
                     LibraryType.FFmpeg => Path.GetDirectoryName( Path.GetDirectoryName( libraryPath ) ), // Go up two levels from bin/ffmpeg.exe

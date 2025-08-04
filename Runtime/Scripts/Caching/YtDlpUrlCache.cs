@@ -1,7 +1,6 @@
 using System.Collections.Concurrent;
 using System.IO;
 using System.Linq;
-using System.Threading.Tasks;
 using Newtonsoft.Json;
 using TCS.YoutubePlayer.UrlProcessing;
 #if UNITY_EDITOR

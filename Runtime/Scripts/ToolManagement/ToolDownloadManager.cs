@@ -2,9 +2,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Net.Http;
 using System.Threading;
-using System.Threading.Tasks;
 using Newtonsoft.Json;
-using TCS.YoutubePlayer.Exceptions;
 
 namespace TCS.YoutubePlayer.ToolManagement {
     public enum LibraryType {

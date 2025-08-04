@@ -1,5 +1,4 @@
 using System.Text.RegularExpressions;
-using TCS.YoutubePlayer.Exceptions;
 namespace TCS.YoutubePlayer.UrlProcessing {
     public class YouTubeUrlProcessor {
         readonly Regex m_youTubeIdRegex = new(
