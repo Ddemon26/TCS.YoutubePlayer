@@ -3,6 +3,7 @@ using System.Threading;
 using TCS.YoutubePlayer.Configuration;
 using TCS.YoutubePlayer.ToolManagement;
 using TCS.YoutubePlayer.Utils;
+using UnityEngine.Serialization;
 using UnityEngine.Video;
 namespace TCS.YoutubePlayer {
     [RequireComponent( typeof(VideoPlayer) )]
@@ -11,7 +12,7 @@ namespace TCS.YoutubePlayer {
 
         [Header( "Configuration" )]
         [SerializeField] string m_profileName = "Default";
-        [SerializeField] YtDlpSettings m_currentSettings = new();
+        [SerializeField] YtDlpSettings m_librarySettings = new();
 
         [SerializeField] string m_title = string.Empty;
         /// <summary>
@@ -127,7 +128,7 @@ namespace TCS.YoutubePlayer {
                 m_currentVideoUrl = url; // Store the URL we are trying to play
                 Logger.Log( $"Attempting to play: {url}" );
 
-                string directUrlAsync = await YtDlpExternalTool.GetDirectUrlAsync( url, m_currentSettings, m_cts.Token );
+                string directUrlAsync = await YtDlpExternalTool.GetDirectUrlAsync( url, m_librarySettings, m_cts.Token );
 
                 if ( string.IsNullOrEmpty( directUrlAsync ) ) {
                     Logger.LogError( "Failed to get direct URL from yt-dlp" );

@@ -1,3 +1,4 @@
+using UnityEngine.Serialization;
 namespace TCS.YoutubePlayer.Configuration {
     public enum VideoQuality { Worst, Low, Medium, High, Best, Custom, }
 
@@ -33,44 +34,44 @@ namespace TCS.YoutubePlayer.Configuration {
 
     [Serializable]
     public class YtDlpSettings {
-        [SerializeField] YtDlpSettingsData m_data = new();
+        [SerializeField] YtDlpSettingsData m_ytDlpSettings = new();
         
-        public string GetSettingsSummary() => m_data.GetSettingsSummary();
+        public string GetSettingsSummary() => m_ytDlpSettings.GetSettingsSummary();
 
-        public VideoQuality VideoQuality => m_data.VideoQuality;
-        public AudioQuality AudioQuality => m_data.AudioQuality;
-        public QualitySelector CustomVideoQuality => m_data.CustomVideoQuality;
-        public QualitySelector CustomAudioQuality => m_data.CustomAudioQuality;
+        public VideoQuality VideoQuality => m_ytDlpSettings.VideoQuality;
+        public AudioQuality AudioQuality => m_ytDlpSettings.AudioQuality;
+        public QualitySelector CustomVideoQuality => m_ytDlpSettings.CustomVideoQuality;
+        public QualitySelector CustomAudioQuality => m_ytDlpSettings.CustomAudioQuality;
 
-        public BrowserType Browser => m_data.Browser;
-        public string CustomBrowserPath => m_data.CustomBrowserPath;
-        public string BrowserProfile => m_data.BrowserProfile;
+        public BrowserType Browser => m_ytDlpSettings.Browser;
+        public string CustomBrowserPath => m_ytDlpSettings.CustomBrowserPath;
+        public string BrowserProfile => m_ytDlpSettings.BrowserProfile;
 
-        public OutputFormat OutputFormat => m_data.OutputFormat;
-        public string CustomOutputFormat => m_data.CustomOutputFormat;
+        public OutputFormat OutputFormat => m_ytDlpSettings.OutputFormat;
+        public string CustomOutputFormat => m_ytDlpSettings.CustomOutputFormat;
 
-        public TimeSpan? Timeout => TimeSpan.FromMinutes( m_data.TimeoutMinutes );
-        public TimeRange TimeRange => m_data.UseTimeRange ?
-            new TimeRange( TimeSpan.FromSeconds( m_data.StartTimeSeconds ), TimeSpan.FromSeconds( m_data.EndTimeSeconds ) ) :
+        public TimeSpan? Timeout => TimeSpan.FromMinutes( m_ytDlpSettings.TimeoutMinutes );
+        public TimeRange TimeRange => m_ytDlpSettings.UseTimeRange ?
+            new TimeRange( TimeSpan.FromSeconds( m_ytDlpSettings.StartTimeSeconds ), TimeSpan.FromSeconds( m_ytDlpSettings.EndTimeSeconds ) ) :
             new TimeRange();
 
-        public bool ExtractAudioOnly => m_data.ExtractAudioOnly;
-        public bool UsePlaylistIndex => m_data.UsePlaylistIndex;
-        public PlaylistHandling PlaylistHandling => m_data.PlaylistHandling;
-        public int MaxPlaylistItems => m_data.MaxPlaylistItems;
-        public bool IgnoreErrors => m_data.IgnoreErrors;
-        public bool UseHlsNative => m_data.UseHlsNative;
-        public bool WriteInfoJson => m_data.WriteInfoJson;
+        public bool ExtractAudioOnly => m_ytDlpSettings.ExtractAudioOnly;
+        public bool UsePlaylistIndex => m_ytDlpSettings.UsePlaylistIndex;
+        public PlaylistHandling PlaylistHandling => m_ytDlpSettings.PlaylistHandling;
+        public int MaxPlaylistItems => m_ytDlpSettings.MaxPlaylistItems;
+        public bool IgnoreErrors => m_ytDlpSettings.IgnoreErrors;
+        public bool UseHlsNative => m_ytDlpSettings.UseHlsNative;
+        public bool WriteInfoJson => m_ytDlpSettings.WriteInfoJson;
 
-        public int? ConcurrentFragments => m_data.ConcurrentFragments > 0 ? m_data.ConcurrentFragments : null;
-        public string RateLimit => m_data.RateLimit;
-        public int? Retries => m_data.Retries > 0 ? m_data.Retries : null;
+        public int? ConcurrentFragments => m_ytDlpSettings.ConcurrentFragments > 0 ? m_ytDlpSettings.ConcurrentFragments : null;
+        public string RateLimit => m_ytDlpSettings.RateLimit;
+        public int? Retries => m_ytDlpSettings.Retries > 0 ? m_ytDlpSettings.Retries : null;
 
         public Dictionary<string, string> CustomArguments {
             get {
                 Dictionary<string, string> dict = new();
-                if ( !string.IsNullOrEmpty( m_data.CustomArguments ) ) {
-                    string[] lines = m_data.CustomArguments.Split( '\n' );
+                if ( !string.IsNullOrEmpty( m_ytDlpSettings.CustomArguments ) ) {
+                    string[] lines = m_ytDlpSettings.CustomArguments.Split( '\n' );
                     foreach (string line in lines) {
                         string trimmed = line.Trim();
                         if ( string.IsNullOrEmpty( trimmed ) || trimmed.StartsWith( "#" ) ) continue;
@@ -91,7 +92,7 @@ namespace TCS.YoutubePlayer.Configuration {
 
         public YtDlpSettings() { }
 
-        public YtDlpSettings(YtDlpSettingsData settingsData) => m_data = new YtDlpSettingsData( settingsData );
+        public YtDlpSettings(YtDlpSettingsData settingsData) => m_ytDlpSettings = new YtDlpSettingsData( settingsData );
 
         public static YtDlpSettings CreateStreamingPreset() => new(YtDlpSettingsData.CreateStreaming());
 
@@ -101,10 +102,10 @@ namespace TCS.YoutubePlayer.Configuration {
 
         public static YtDlpSettings CreateHighQualityPreset() => new(YtDlpSettingsData.CreateHighQuality());
 
-        public YtDlpSettings Clone() => new(new YtDlpSettingsData( m_data ));
+        public YtDlpSettings Clone() => new(new YtDlpSettingsData( m_ytDlpSettings ));
 
         public YtDlpSettings With(Action<YtDlpSettingsData> configure) {
-            var newData = new YtDlpSettingsData( m_data );
+            var newData = new YtDlpSettingsData( m_ytDlpSettings );
             configure( newData );
             return new YtDlpSettings( newData );
         }

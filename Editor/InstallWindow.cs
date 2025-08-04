@@ -15,7 +15,7 @@ namespace TCS.YoutubePlayer {
         CancellationTokenSource m_cancellationTokenSource;
         bool m_isOperationInProgress;
 
-        [MenuItem( "Tools/Install/Youtube Dependencies" )]
+        [MenuItem( "Tools/TCS/Youtube Dependencies Installer" )]
         public static void OpenWindow() {
             var wnd = GetWindow<InstallWindow>();
             wnd.titleContent = new GUIContent( "InstallWindow" );
