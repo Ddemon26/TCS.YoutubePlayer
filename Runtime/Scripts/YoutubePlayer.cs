@@ -3,7 +3,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine.Video;
 using TCS.YoutubePlayer.Configuration;
-using Logger = TCS.YoutubePlayer.Utils.Logger;
 
 namespace TCS.YoutubePlayer {
     [RequireComponent( typeof(VideoPlayer) )]

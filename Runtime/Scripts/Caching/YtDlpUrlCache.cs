@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using TCS.YoutubePlayer.UrlProcessing;
 using UnityEditor;
-using Logger = TCS.YoutubePlayer.Utils.Logger;
 
 namespace TCS.YoutubePlayer.Caching {
     public class YtDlpUrlCache : IDisposable {

@@ -6,7 +6,6 @@ using TCS.YoutubePlayer.Exceptions;
 using TCS.YoutubePlayer.ProcessExecution;
 using TCS.YoutubePlayer.UrlProcessing;
 using TCS.YoutubePlayer.VideoConversion;
-using Logger = TCS.YoutubePlayer.Utils.Logger;
 
 namespace TCS.YoutubePlayer {
     public enum YtDlpUpdateResult {

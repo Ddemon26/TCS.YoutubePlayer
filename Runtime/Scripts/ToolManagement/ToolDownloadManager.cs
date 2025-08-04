@@ -5,7 +5,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using TCS.YoutubePlayer.Exceptions;
-using Logger = TCS.YoutubePlayer.Utils.Logger;
 
 namespace TCS.YoutubePlayer.ToolManagement {
     public class ToolDownloadManager : IDisposable {

@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 using TCS.YoutubePlayer.Exceptions;
 using TCS.YoutubePlayer.ProcessExecution;
 using TCS.YoutubePlayer.UrlProcessing;
-using Logger = TCS.YoutubePlayer.Utils.Logger;
 
 namespace TCS.YoutubePlayer.VideoConversion {
     public class Mp4Converter : IDisposable {

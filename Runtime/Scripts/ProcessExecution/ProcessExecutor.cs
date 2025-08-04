@@ -4,7 +4,6 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using TCS.YoutubePlayer.Exceptions;
-using Logger = TCS.YoutubePlayer.Utils.Logger;
 
 namespace TCS.YoutubePlayer.ProcessExecution {
     public class ProcessExecutor : IDisposable {
