@@ -11,14 +11,12 @@ using TCS.YoutubePlayer.UrlProcessing;
 namespace TCS.YoutubePlayer.VideoConversion {
     public class Mp4Converter : IDisposable {
         readonly ProcessExecutor m_processExecutor;
-        readonly YouTubeUrlProcessor m_urlProcessor;
         readonly ConcurrentDictionary<string, Mp4ConversionEntry> m_mp4ConversionCache = new();
 
         const int MP4_CACHE_LIMIT = 1;
 
         public Mp4Converter(ProcessExecutor processExecutor, YouTubeUrlProcessor urlProcessor) {
             m_processExecutor = processExecutor ?? throw new ArgumentNullException( nameof(processExecutor) );
-            m_urlProcessor = urlProcessor ?? throw new ArgumentNullException( nameof(urlProcessor) );
         }
 
         public async Task<string> ConvertToMp4Async(string hlsUrl, CancellationToken cancellationToken) {

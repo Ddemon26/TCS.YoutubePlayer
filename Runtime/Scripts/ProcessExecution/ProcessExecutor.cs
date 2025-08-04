@@ -64,7 +64,7 @@ namespace TCS.YoutubePlayer.ProcessExecution {
             CancellationTokenRegistration ctr = default;
             var startTime = DateTime.UtcNow;
 
-            // Set up timeout if specified - don't dispose until process completes
+            // Set up timeout if specified - don't dispose until the process completes
             var timeoutCts = timeout.HasValue ? new CancellationTokenSource( timeout.Value ) : null;
             var linkedCts = timeoutCts != null
                 ? CancellationTokenSource.CreateLinkedTokenSource( cancellationToken, timeoutCts.Token )

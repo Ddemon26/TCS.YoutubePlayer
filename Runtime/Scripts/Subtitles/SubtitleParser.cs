@@ -17,7 +17,7 @@ namespace TCS.YoutubePlayer.Subtitles {
                 ".srt" => "srt",
                 ".vtt" => "vtt",
                 ".ass" => "ass",
-                _ => "unknown"
+                _ => "unknown",
             };
 
             var track = new SubtitleTrack(language, format, filePath);
@@ -96,7 +96,7 @@ namespace TCS.YoutubePlayer.Subtitles {
                 float endTime = ParseVttTime(timeMatch, 5);
 
                 // Collect text lines until next timing or end
-                List<string> textLines = new List<string>();
+                List<string> textLines = new();
                 for (int j = i + 1; j < lines.Length; j++) {
                     string textLine = lines[j].Trim();
                     if (string.IsNullOrEmpty(textLine) || VttTimeRegex.IsMatch(textLine)) {
@@ -214,14 +214,14 @@ namespace TCS.YoutubePlayer.Subtitles {
             
             if (string.IsNullOrEmpty(directory)) return new List<string>();
 
-            List<string> subtitleFiles = new List<string>();
+            List<string> subtitleFiles = new();
             string[] extensions = { ".srt", ".vtt", ".ass" };
 
             foreach (string ext in extensions) {
                 // Look for files like "video.srt", "video.en.srt", etc.
                 string[] patterns = {
                     $"{baseName}{ext}",
-                    $"{baseName}.*{ext}"
+                    $"{baseName}.*{ext}",
                 };
 
                 foreach (string pattern in patterns) {

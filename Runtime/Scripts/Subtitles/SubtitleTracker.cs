@@ -1,9 +1,6 @@
 using System.Linq;
-using UnityEngine;
 using UnityEngine.Video;
 using UnityEngine.Events;
-using System.Collections.Generic;
-using TCS.YoutubePlayer.Subtitles;
 
 namespace TCS.YoutubePlayer.Subtitles {
     /// <summary>

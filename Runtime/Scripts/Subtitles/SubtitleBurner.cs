@@ -214,7 +214,7 @@ namespace TCS.YoutubePlayer.Subtitles {
 
             // Add custom styling options
             if (options != null) {
-                List<string> styleOptions = new List<string>();
+                List<string> styleOptions = new();
 
                 if (!string.IsNullOrEmpty(options.FontName)) {
                     styleOptions.Add($"force_style='FontName={options.FontName}'");
@@ -277,14 +277,14 @@ namespace TCS.YoutubePlayer.Subtitles {
             FontSize = 28,
             VideoCodec = "libx264",
             VideoQuality = "18", // Higher quality
-            CopyAudio = true
+            CopyAudio = true,
         };
 
         public static SubtitleBurnOptions CreateFastEncode() => new() {
             FontSize = 22,
             VideoCodec = "libx264",
             VideoQuality = "28", // Faster encode, lower quality
-            CopyAudio = true
+            CopyAudio = true,
         };
     }
 }
