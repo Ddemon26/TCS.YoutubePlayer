@@ -58,7 +58,7 @@ namespace TCS.YoutubePlayer.Caching {
                     return currentDir;
                 }
                 
-                // Check if current directory contains TCS.YoutubePlayer.asmdef (for direct Runtime placement)
+                // Check if the current directory contains TCS.YoutubePlayer.asmdef (for direct Runtime placement)
                 if (File.Exists(Path.Combine(currentDir, "TCS.YoutubePlayer.asmdef"))) {
                     return currentDir;
                 }
@@ -132,13 +132,9 @@ namespace TCS.YoutubePlayer.Caching {
             m_cache[cacheKey] = new CacheEntry(directUrl, title, videoUrl, expiry);
         }
 
-        void LoadCacheFromFile() {
-            LoadCacheFromFileInternal(false);
-        }
+        void LoadCacheFromFile() => LoadCacheFromFileInternal(false);
 
-        void ReloadCacheFromFile() {
-            LoadCacheFromFileInternal(true);
-        }
+        void ReloadCacheFromFile() => LoadCacheFromFileInternal(true);
 
         void LoadCacheFromFileInternal(bool isReload) {
             if (File.Exists(m_cacheFilePath)) {
@@ -176,18 +172,18 @@ namespace TCS.YoutubePlayer.Caching {
                         }
 
                         if (isReload) {
-                            Logger.Log($"[UrlCache] Reloaded cache: {loadedCount} new, {updatedCount} updated (skipped {expiredCount} expired): `{m_cacheFilePath}`");
+                            Logger.Log($"Reloaded cache: {loadedCount} new, {updatedCount} updated (skipped {expiredCount} expired): `{m_cacheFilePath}`");
                         } else {
-                            Logger.Log($"[UrlCache] Loaded {loadedCount} valid entries from cache file (skipped {expiredCount} expired entries): `{m_cacheFilePath}`");
+                            Logger.Log($"Loaded {loadedCount} valid entries from cache file (skipped {expiredCount} expired entries): `{m_cacheFilePath}`");
                         }
                     }
                 }
                 catch (Exception ex) {
-                    Logger.LogError($"[UrlCache] Failed to {(isReload ? "reload" : "load")} cache from `{m_cacheFilePath}`: {ex.Message}.");
+                    Logger.LogError($"Failed to {(isReload ? "reload" : "load")} cache from `{m_cacheFilePath}`: {ex.Message}.");
                 }
             }
             else if (!isReload) {
-                Logger.Log($"[UrlCache] Cache file not found at `{m_cacheFilePath}`. Starting with an empty cache.");
+                Logger.Log($"Cache file not found at `{m_cacheFilePath}`. Starting with an empty cache.");
             }
         }
 
@@ -203,13 +199,13 @@ namespace TCS.YoutubePlayer.Caching {
                 File.WriteAllText(m_cacheFilePath, json);
                 
                 if (entriesToSave.Any()) {
-                    Logger.Log($"[UrlCache] Saved {entriesToSave.Count} valid cache entries to: `{m_cacheFilePath}`");
+                    Logger.Log($"Saved {entriesToSave.Count} valid cache entries to: `{m_cacheFilePath}`");
                 } else {
-                    Logger.Log($"[UrlCache] Saved empty cache (all entries expired) to: `{m_cacheFilePath}`");
+                    Logger.Log($"Saved empty cache (all entries expired) to: `{m_cacheFilePath}`");
                 }
             }
             catch (Exception ex) {
-                Logger.LogError($"[UrlCache] Failed to save cache to `{m_cacheFilePath}`: {ex.Message}");
+                Logger.LogError($"Failed to save cache to `{m_cacheFilePath}`: {ex.Message}");
             }
         }
 

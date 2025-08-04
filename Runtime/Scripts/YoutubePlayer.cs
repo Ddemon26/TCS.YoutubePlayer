@@ -49,7 +49,7 @@ namespace TCS.YoutubePlayer {
                     m_videoPlayer.errorReceived += HandleVideoError;
                     m_videoPlayer.prepareCompleted += VideoPlayerOnPrepareCompleted;
                 } else {
-                    Logger.LogError("[YoutubePlayer] Failed to get or create VideoPlayer component");
+                    Logger.LogError("Failed to get or create VideoPlayer component");
                     return;
                 }
                 
@@ -57,36 +57,36 @@ namespace TCS.YoutubePlayer {
                 await InitializeAsync();
             }
             catch (Exception e) {
-                Logger.LogError($"[YoutubePlayer] Failed to initialize VideoPlayer: {e.Message}");
+                Logger.LogError($"Failed to initialize VideoPlayer: {e.Message}");
             }
         }
 
         Task InitializeAsync() {
             try {
-                Logger.Log("[YoutubePlayer] Checking external tool dependencies...");
+                Logger.Log("Checking external tool dependencies...");
                 
                 bool ytDlpExists = CheckYtDlpExists();
                 bool ffmpegExists = CheckFfmpegExists();
                 
                 if (!ytDlpExists) {
-                    Logger.LogWarning("[YoutubePlayer] yt-dlp is not installed. Please use the TCS Youtube Player editor window to install required dependencies.");
+                    Logger.LogWarning("yt-dlp is not installed. Please use the TCS Youtube Player editor window to install required dependencies.");
                     m_initializationFailed = true;
                     return Task.CompletedTask;
                 }
                 
                 if (!ffmpegExists) {
-                    Logger.LogWarning("[YoutubePlayer] ffmpeg is not installed. MP4 conversion features will be unavailable. Use the TCS Youtube Player editor window to install ffmpeg if needed.");
+                    Logger.LogWarning("ffmpeg is not installed. MP4 conversion features will be unavailable. Use the TCS Youtube Player editor window to install ffmpeg if needed.");
                 }
                 
-                Logger.Log("[YoutubePlayer] Dependency check completed.");
+                Logger.Log("Dependency check completed.");
                 m_isInitialized = true;
             }
             catch (OperationCanceledException) {
-                Logger.LogWarning("[YoutubePlayer] Dependency check was cancelled during initialization.");
+                Logger.LogWarning("Dependency check was cancelled during initialization.");
                 m_initializationFailed = true;
             }
             catch (Exception e) {
-                Logger.LogError($"[YoutubePlayer] Failed to check dependencies: {e.Message}");
+                Logger.LogError($"Failed to check dependencies: {e.Message}");
                 m_initializationFailed = true;
             }
 
@@ -106,7 +106,7 @@ namespace TCS.YoutubePlayer {
 
                 // Wait for initialization if not complete
                 if (!m_isInitialized && !m_initializationFailed) {
-                    Logger.Log("[YoutubePlayer] Waiting for initialization to complete...");
+                    Logger.Log("Waiting for initialization to complete...");
                     // Give initialization some time to complete
                     int attempts = 0;
                     while (!m_isInitialized && !m_initializationFailed && attempts < 100) {
@@ -116,30 +116,30 @@ namespace TCS.YoutubePlayer {
                     
                     if (!m_isInitialized) {
                         if (m_initializationFailed) {
-                            Logger.LogError("[YoutubePlayer] Initialization failed. Required dependencies are missing. Please use the TCS Youtube Player editor window to install them.");
+                            Logger.LogError("Initialization failed. Required dependencies are missing. Please use the TCS Youtube Player editor window to install them.");
                             return;
                         }
 
-                        Logger.LogWarning("[YoutubePlayer] Initialization timeout, proceeding anyway...");
+                        Logger.LogWarning("Initialization timeout, proceeding anyway...");
                     }
                 }
 
                 m_currentVideoUrl = url; // Store the URL we are trying to play
-                Logger.Log($"[YoutubePlayer] Attempting to play: {url}");
+                Logger.Log($"Attempting to play: {url}");
 
                 string directUrlAsync = await YtDlpExternalTool.GetDirectUrlAsync( url, m_cts.Token ); 
 
                 if (string.IsNullOrEmpty(directUrlAsync)) {
-                    Logger.LogError("[YoutubePlayer] Failed to get direct URL from yt-dlp");
+                    Logger.LogError("Failed to get direct URL from yt-dlp");
                     return;
                 }
 
                 if ( IsMp4Stream( directUrlAsync ) && m_isAllowedToDownload ) {
-                    Logger.Log($"[YoutubePlayer] Detected Mp4 stream: {directUrlAsync}");
+                    Logger.Log($"Detected Mp4 stream: {directUrlAsync}");
                     try {
                         string mp4Path = await YtDlpExternalTool.ConvertToMp4Async( directUrlAsync, m_cts.Token );
                         if ( !string.IsNullOrEmpty( mp4Path ) ) {
-                            Logger.Log($"[YoutubePlayer] Preemptive conversion successful. Playing local file: {mp4Path}");
+                            Logger.Log($"Preemptive conversion successful. Playing local file: {mp4Path}");
                             m_videoPlayer.source = VideoSource.Url;
                             m_videoPlayer.url = "file://" + mp4Path;
                             m_videoPlayer.Prepare();
@@ -147,13 +147,13 @@ namespace TCS.YoutubePlayer {
                         
                         }
 
-                        Logger.LogWarning($"[YoutubePlayer] Preemptive conversion failed or returned an empty path for URL: {directUrlAsync}");
+                        Logger.LogWarning($"Preemptive conversion failed or returned an empty path for URL: {directUrlAsync}");
                     }
                     catch (OperationCanceledException) {
-                        Logger.LogWarning($"[YoutubePlayer] MP4 conversion was cancelled for URL: {directUrlAsync}");
+                        Logger.LogWarning($"MP4 conversion was cancelled for URL: {directUrlAsync}");
                     }
                     catch (Exception ex) {
-                        Logger.LogError($"[YoutubePlayer] Preemptive conversion failed: {ex.Message}");
+                        Logger.LogError($"Preemptive conversion failed: {ex.Message}");
                     }
                 }
 
@@ -164,17 +164,17 @@ namespace TCS.YoutubePlayer {
                     m_videoPlayer.url = directUrlAsync;
                     m_videoPlayer.Prepare();
                 } else {
-                    Logger.LogError("[YoutubePlayer] VideoPlayer component is null, cannot play video");
+                    Logger.LogError("VideoPlayer component is null, cannot play video");
                 }
             }
             catch (OperationCanceledException) {
-                Logger.LogWarning($"[YoutubePlayer] Video playback was cancelled for URL: {m_currentVideoUrl}");
+                Logger.LogWarning($"Video playback was cancelled for URL: {m_currentVideoUrl}");
             }
             catch (Exception e) when (e.Message.Contains("Requested format is not available")) {
-                Logger.LogError($"[YoutubePlayer] The requested video format is not available for URL: {m_currentVideoUrl}. Try a different video or format.");
+                Logger.LogError($"The requested video format is not available for URL: {m_currentVideoUrl}. Try a different video or format.");
             }
             catch (Exception e) {
-                Logger.LogError($"[YoutubePlayer] Exception occurred while preparing video: {e.Message}");
+                Logger.LogError($"Exception occurred while preparing video: {e.Message}");
             }
         }
 
@@ -185,14 +185,14 @@ namespace TCS.YoutubePlayer {
                    || url.Contains( "m3u8" ));
 
         static void VideoPlayerOnPrepareCompleted(VideoPlayer source) {
-            Logger.Log($"[YoutubePlayer] Video prepared. Playing: {source.url}");
+            Logger.Log($"Video prepared. Playing: {source.url}");
             source.Play();
         }
 
         void HandleVideoError(VideoPlayer source, string message) {
-            Logger.LogError($"[YoutubePlayer] VideoPlayer error: {message}");
+            Logger.LogError($"VideoPlayer error: {message}");
             if (!string.IsNullOrEmpty(m_currentVideoUrl)) {
-                Logger.LogError($"[YoutubePlayer] Failed to play video from URL: {m_currentVideoUrl}");
+                Logger.LogError($"Failed to play video from URL: {m_currentVideoUrl}");
             }
         }
 
@@ -202,7 +202,7 @@ namespace TCS.YoutubePlayer {
                 return File.Exists(ytDlpPath);
             }
             catch (Exception e) {
-                Logger.LogError($"[YoutubePlayer] Error checking yt-dlp path: {e.Message}");
+                Logger.LogError($"Error checking yt-dlp path: {e.Message}");
                 return false;
             }
         }
@@ -213,7 +213,7 @@ namespace TCS.YoutubePlayer {
                 return File.Exists(ffmpegPath);
             }
             catch (Exception e) {
-                Logger.LogError($"[YoutubePlayer] Error checking ffmpeg path: {e.Message}");
+                Logger.LogError($"Error checking ffmpeg path: {e.Message}");
                 return false;
             }
         }
@@ -235,7 +235,7 @@ namespace TCS.YoutubePlayer {
                 }
             }
             catch (Exception e) {
-                Logger.LogError($"[YoutubePlayer] Error during cleanup: {e.Message}");
+                Logger.LogError($"Error during cleanup: {e.Message}");
             }
             finally {
                 m_cts?.Dispose();

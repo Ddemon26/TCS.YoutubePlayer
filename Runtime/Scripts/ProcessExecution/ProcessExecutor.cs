@@ -82,7 +82,7 @@ namespace TCS.YoutubePlayer.ProcessExecution {
                                 ? "timeout" 
                                 : "cancellation";
                             Logger.LogWarning(
-                                $"[ProcessExecutor] Killed process {Path.GetFileName(fileName)} due to {reason}."
+                                $"Killed process {Path.GetFileName(fileName)} due to {reason}."
                             );
                         }
                     }
@@ -90,7 +90,7 @@ namespace TCS.YoutubePlayer.ProcessExecution {
                         // Already exited
                     }
                     catch (Exception ex) {
-                        Logger.LogError($"[ProcessExecutor] Exception trying to kill process: {ex.Message}");
+                        Logger.LogError($"Exception trying to kill process: {ex.Message}");
                     }
 
                     if (timeoutCts?.Token.IsCancellationRequested == true) {
@@ -124,15 +124,15 @@ namespace TCS.YoutubePlayer.ProcessExecution {
                     
                     Logger.LogPerformance($"Process {Path.GetFileName(fileName)}", duration);
                     if (result.IsSuccess) {
-                        Logger.Log($"[ProcessExecutor] Process {Path.GetFileName(fileName)} completed successfully in {duration.TotalMilliseconds:F0}ms");
+                        Logger.Log($"Process {Path.GetFileName(fileName)} completed successfully in {duration.TotalMilliseconds:F0}ms");
                     } else {
-                        Logger.LogWarning($"[ProcessExecutor] Process {Path.GetFileName(fileName)} failed with exit code {result.ExitCode} after {duration.TotalMilliseconds:F0}ms");
+                        Logger.LogWarning($"Process {Path.GetFileName(fileName)} failed with exit code {result.ExitCode} after {duration.TotalMilliseconds:F0}ms");
                     }
                     
                     tcs.TrySetResult(result);
                 }
                 catch (Exception ex) {
-                    Logger.LogError($"[ProcessExecutor] Exception in process exit handler: {ex.Message}");
+                    Logger.LogError($"Exception in process exit handler: {ex.Message}");
                     tcs.TrySetException(ex);
                 }
                 finally {
@@ -143,14 +143,14 @@ namespace TCS.YoutubePlayer.ProcessExecution {
                         }
                     }
                     catch (Exception ex) {
-                        Logger.LogError($"[ProcessExecutor] Exception disposing cancellation token registration: {ex.Message}");
+                        Logger.LogError($"Exception disposing cancellation token registration: {ex.Message}");
                     }
 
                     try {
                         process.Dispose();
                     }
                     catch (Exception ex) {
-                        Logger.LogError($"[ProcessExecutor] Exception disposing process: {ex.Message}");
+                        Logger.LogError($"Exception disposing process: {ex.Message}");
                     }
 
                     // Dispose cancellation token sources
@@ -159,7 +159,7 @@ namespace TCS.YoutubePlayer.ProcessExecution {
                         timeoutCts?.Dispose();
                     }
                     catch (Exception ex) {
-                        Logger.LogError($"[ProcessExecutor] Exception disposing cancellation token sources: {ex.Message}");
+                        Logger.LogError($"Exception disposing cancellation token sources: {ex.Message}");
                     }
                 }
             };
@@ -177,13 +177,13 @@ namespace TCS.YoutubePlayer.ProcessExecution {
                     CleanupResources(ctr, process, linkedCts, timeoutCts, combinedToken);
                 }
                 else {
-                    Logger.Log($"[ProcessExecutor] Started process: {fileName} {arguments} (PID: {process.Id})");
+                    Logger.Log($"Started process: {fileName} {arguments} (PID: {process.Id})");
                     process.BeginOutputReadLine();
                     process.BeginErrorReadLine();
                 }
             }
             catch (Exception ex) {
-                Logger.LogError($"[ProcessExecutor] Exception launching '{fileName} {arguments}': {ex}");
+                Logger.LogError($"Exception launching '{fileName} {arguments}': {ex}");
                 tcs.TrySetException(
                     new YtDlpException(
                         $"Failed to start process '{Path.GetFileName(fileName)}'. Exception: {ex.Message}", ex
@@ -219,14 +219,14 @@ namespace TCS.YoutubePlayer.ProcessExecution {
                 }
             }
             catch (Exception ex) {
-                Logger.LogError($"[ProcessExecutor] Exception disposing cancellation token registration: {ex.Message}");
+                Logger.LogError($"Exception disposing cancellation token registration: {ex.Message}");
             }
 
             try {
                 process?.Dispose();
             }
             catch (Exception ex) {
-                Logger.LogError($"[ProcessExecutor] Exception disposing process: {ex.Message}");
+                Logger.LogError($"Exception disposing process: {ex.Message}");
             }
 
             try {
@@ -234,7 +234,7 @@ namespace TCS.YoutubePlayer.ProcessExecution {
                 timeoutCts?.Dispose();
             }
             catch (Exception ex) {
-                Logger.LogError($"[ProcessExecutor] Exception disposing cancellation token sources: {ex.Message}");
+                Logger.LogError($"Exception disposing cancellation token sources: {ex.Message}");
             }
         }
 

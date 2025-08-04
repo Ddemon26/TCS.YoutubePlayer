@@ -24,12 +24,12 @@ namespace TCS.YoutubePlayer.VideoConversion {
 
         public async Task<string> ConvertToMp4Async(string hlsUrl, CancellationToken cancellationToken) {
             if (string.IsNullOrEmpty(hlsUrl)) {
-                Logger.LogError("[Mp4Converter] HLS URL is null or empty");
+                Logger.LogError("HLS URL is null or empty");
                 return null;
             }
 
             if (m_mp4ConversionCache.TryGetValue(hlsUrl, out var existingEntry)) {
-                Logger.Log($"[Mp4Converter] HLS URL found in cache. Returning existing file: {existingEntry.OutputFilePath}");
+                Logger.Log($"HLS URL found in cache. Returning existing file: {existingEntry.OutputFilePath}");
                 return existingEntry.OutputFilePath;
             }
 
@@ -42,7 +42,7 @@ namespace TCS.YoutubePlayer.VideoConversion {
                 return outputFilePath;
             }
             catch (YtDlpException ex) {
-                Logger.LogError($"[Mp4Converter] Error converting HLS URL to MP4: {ex.Message}");
+                Logger.LogError($"Error converting HLS URL to MP4: {ex.Message}");
                 throw;
             }
         }
@@ -67,14 +67,14 @@ namespace TCS.YoutubePlayer.VideoConversion {
                 try {
                     if (File.Exists(removedEntry.OutputFilePath)) {
                         File.Delete(removedEntry.OutputFilePath);
-                        Logger.Log($"[Mp4Converter] Cache full. Removed oldest entry: {oldestKeyValue.Key} and its file: {removedEntry.OutputFilePath}");
+                        Logger.Log($"Cache full. Removed oldest entry: {oldestKeyValue.Key} and its file: {removedEntry.OutputFilePath}");
                     }
                     else {
-                        Logger.Log($"[Mp4Converter] Cache full. Removed oldest entry: {oldestKeyValue.Key}. File not found: {removedEntry.OutputFilePath}");
+                        Logger.Log($"Cache full. Removed oldest entry: {oldestKeyValue.Key}. File not found: {removedEntry.OutputFilePath}");
                     }
                 }
                 catch (IOException ex) {
-                    Logger.LogError($"[Mp4Converter] Error deleting cached file {removedEntry.OutputFilePath}: {ex.Message}");
+                    Logger.LogError($"Error deleting cached file {removedEntry.OutputFilePath}: {ex.Message}");
                 }
             }
 
@@ -104,7 +104,7 @@ namespace TCS.YoutubePlayer.VideoConversion {
                 );
             }
 
-            Logger.Log($"[Mp4Converter] HLS URL converted to MP4 at {outputFilePath}");
+            Logger.Log($"HLS URL converted to MP4 at {outputFilePath}");
         }
 
         void AddToMp4Cache(string hlsUrl, string outputFilePath) {
@@ -125,7 +125,7 @@ namespace TCS.YoutubePlayer.VideoConversion {
                     }
                 }
                 catch (IOException ex) {
-                    Logger.LogError($"[Mp4Converter] Error deleting cached file {entry.OutputFilePath} during disposal: {ex.Message}");
+                    Logger.LogError($"Error deleting cached file {entry.OutputFilePath} during disposal: {ex.Message}");
                 }
             }
             m_mp4ConversionCache.Clear();

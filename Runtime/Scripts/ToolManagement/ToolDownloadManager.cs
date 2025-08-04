@@ -39,14 +39,14 @@ namespace TCS.YoutubePlayer.ToolManagement {
 
                 // Check if tool was downloaded more than 7 days ago
                 if (DateTime.UtcNow - toolInfo.DownloadedAt > TimeSpan.FromDays(7)) {
-                    Logger.Log($"[ToolDownloadManager] {toolName} is older than 7 days, considering update");
+                    Logger.Log($"{toolName} is older than 7 days, considering update");
                     return true;
                 }
                 
                 return false;
             }
             catch (Exception ex) {
-                Logger.LogWarning($"[ToolDownloadManager] Failed to read version info: {ex.Message}");
+                Logger.LogWarning($"Failed to read version info: {ex.Message}");
                 return true;
             }
         }
@@ -74,10 +74,10 @@ namespace TCS.YoutubePlayer.ToolManagement {
                 string updatedJson = JsonConvert.SerializeObject(versionInfo, Formatting.Indented);
                 File.WriteAllText(versionFilePath, updatedJson);
                 
-                Logger.Log($"[ToolDownloadManager] Updated version info for {toolName}: {version}");
+                Logger.Log($"Updated version info for {toolName}: {version}");
             }
             catch (Exception ex) {
-                Logger.LogWarning($"[ToolDownloadManager] Failed to update version info: {ex.Message}");
+                Logger.LogWarning($"Failed to update version info: {ex.Message}");
             }
         }
 
@@ -85,17 +85,17 @@ namespace TCS.YoutubePlayer.ToolManagement {
             string ytDlpPath = GetYtDlpPath();
             
             if (File.Exists(ytDlpPath)) {
-                Logger.Log($"[ToolDownloadManager] yt-dlp already exists at: {ytDlpPath}");
+                Logger.Log($"yt-dlp already exists at: {ytDlpPath}");
                 return ytDlpPath;
             }
 
-            Logger.Log("[ToolDownloadManager] Downloading yt-dlp...");
+            Logger.Log("Downloading yt-dlp...");
             
             // Only download for Windows platforms for now
             if (Application.platform == RuntimePlatform.WindowsPlayer || Application.platform == RuntimePlatform.WindowsEditor) {
                 await DownloadFileAsync(YT_DLP_WINDOWS_URL, ytDlpPath, cancellationToken);
                 UpdateToolVersion("yt-dlp", "latest", ytDlpPath);
-                Logger.Log($"[ToolDownloadManager] yt-dlp downloaded successfully to: {ytDlpPath}");
+                Logger.Log($"yt-dlp downloaded successfully to: {ytDlpPath}");
             } else {
                 throw new NotSupportedException($"Automatic yt-dlp download not supported for platform {Application.platform}");
             }
@@ -107,7 +107,7 @@ namespace TCS.YoutubePlayer.ToolManagement {
             string ffmpegPath = GetFFmpegPath();
             
             if (File.Exists(ffmpegPath)) {
-                Logger.Log($"[ToolDownloadManager] FFmpeg already exists at: {ffmpegPath}");
+                Logger.Log($"FFmpeg already exists at: {ffmpegPath}");
                 return ffmpegPath;
             }
 
@@ -116,7 +116,7 @@ namespace TCS.YoutubePlayer.ToolManagement {
                 throw new NotSupportedException($"Automatic FFmpeg download not supported for platform {Application.platform}");
             }
 
-            Logger.Log("[ToolDownloadManager] Downloading FFmpeg...");
+            Logger.Log("Downloading FFmpeg...");
             string archivePath = Path.Combine(Path.GetTempPath(), "ffmpeg.zip");
             
             try {
@@ -128,7 +128,7 @@ namespace TCS.YoutubePlayer.ToolManagement {
                 }
                 
                 UpdateToolVersion("ffmpeg", "essentials-latest", ffmpegPath);
-                Logger.Log($"[ToolDownloadManager] FFmpeg downloaded and extracted successfully to: {ffmpegPath}");
+                Logger.Log($"FFmpeg downloaded and extracted successfully to: {ffmpegPath}");
                 return ffmpegPath;
             }
             catch (Exception ex) {
@@ -177,7 +177,7 @@ namespace TCS.YoutubePlayer.ToolManagement {
                 response.EnsureSuccessStatusCode();
                 
                 long totalBytes = response.Content.Headers.ContentLength ?? -1;
-                Logger.Log($"[ToolDownloadManager] Starting download: {Path.GetFileName(destinationPath)} ({(totalBytes > 0 ? $"{totalBytes / 1024 / 1024:F1} MB" : "unknown size")})");
+                Logger.Log($"Starting download: {Path.GetFileName(destinationPath)} ({(totalBytes > 0 ? $"{totalBytes / 1024 / 1024:F1} MB" : "unknown size")})");
                 
                 await using var contentStream = await response.Content.ReadAsStreamAsync();
                 await using var fileStream = new FileStream(destinationPath, FileMode.Create, FileAccess.Write, FileShare.None);
@@ -193,12 +193,12 @@ namespace TCS.YoutubePlayer.ToolManagement {
                     if (totalBytes > 0) {
                         double progressPercent = (double)downloadedBytes / totalBytes * 100;
                         if (downloadedBytes % (1024 * 1024) < 8192) { // Log every ~1MB
-                            Logger.Log($"[ToolDownloadManager] Download progress: {progressPercent:F1}% ({downloadedBytes / 1024 / 1024:F1}/{totalBytes / 1024 / 1024:F1} MB)");
+                            Logger.Log($"Download progress: {progressPercent:F1}% ({downloadedBytes / 1024 / 1024:F1}/{totalBytes / 1024 / 1024:F1} MB)");
                         }
                     }
                 }
                 
-                Logger.Log($"[ToolDownloadManager] Download completed: {Path.GetFileName(destinationPath)} ({downloadedBytes / 1024 / 1024:F1} MB)");
+                Logger.Log($"Download completed: {Path.GetFileName(destinationPath)} ({downloadedBytes / 1024 / 1024:F1} MB)");
             }
             catch (HttpRequestException ex) {
                 throw new YtDlpException($"Failed to download from {url}: {ex.Message}", ex);
@@ -207,7 +207,7 @@ namespace TCS.YoutubePlayer.ToolManagement {
                 throw new YtDlpException($"Download from {url} timed out", ex);
             }
             catch (Exception ex) {
-                Logger.LogError($"[ToolDownloadManager] Unexpected error during download: {ex.Message}");
+                Logger.LogError($"Unexpected error during download: {ex.Message}");
                 throw;
             }
         }

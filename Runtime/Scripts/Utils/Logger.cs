@@ -1,10 +1,10 @@
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using Debug = UnityEngine.Debug;
 using Object = UnityEngine.Object;
 
 namespace TCS.YoutubePlayer.Utils {
     internal static class Logger {
-        const string CLASS_NAME = "YoutubePlayer";
         const string CLASS_COLOR = "cyan";
         const string CONTEXT_COLOR = "white";
         
@@ -23,6 +23,41 @@ namespace TCS.YoutubePlayer.Utils {
         const string COLOR_TODO = "orange";
         const string TEXT_TODO = "TODO:";
 
+        static string GetCallerClassName() {
+            var stackTrace = new StackTrace();
+            
+            for (int i = 2; i < stackTrace.FrameCount; i++) {
+                var frame = stackTrace.GetFrame(i);
+                var method = frame?.GetMethod();
+                var declaringType = method?.DeclaringType;
+                
+                if (declaringType != null && declaringType != typeof(Logger)) {
+                    string typeName = declaringType.Name;
+                    
+                    // Handle compiler-generated async method classes like <MethodName>d__X
+                    if (typeName.StartsWith("<") && typeName.Contains(">d__")) {
+                        // Try to get the actual declaring type (parent class)
+                        var outerType = declaringType.DeclaringType;
+                        if (outerType != null) {
+                            return outerType.Name;
+                        }
+                    }
+                    
+                    // Handle other compiler-generated classes like <>c__DisplayClassX_Y
+                    if (typeName.StartsWith("<>c__")) {
+                        var outerType = declaringType.DeclaringType;
+                        if (outerType != null) {
+                            return outerType.Name;
+                        }
+                    }
+                    
+                    return typeName;
+                }
+            }
+            
+            return "Unknown";
+        }
+
         static string SetLogPrefix(this object newString, LogType logType) {
             string color = logType switch {
                 LogType.Log => COLOR_LOG,
@@ -35,8 +70,15 @@ namespace TCS.YoutubePlayer.Utils {
             return $"<b><color={color}>{newString}</color></b>";
         }   
         
-        static string SetClassPrefix(this object newString)
-            => $"<color=white><b>[</b><color={CLASS_COLOR}>{newString}</color><b>]</b></color>";
+        static string SetClassPrefix(this object newString, LogType logType) {
+            string color = logType switch {
+                LogType.Warning => COLOR_WARNING,
+                LogType.Error => COLOR_ERROR,
+                LogType.TODO => COLOR_TODO,
+                _ => CLASS_COLOR,
+            };
+            return $"<color=white><b>[</b><color={color}>{newString}</color><b>]</b></color>";
+        }
 
         static string SetMessagePrefix(this object newString)   
             => $"<color={CONTEXT_COLOR}>{newString}</color>";
@@ -52,7 +94,8 @@ namespace TCS.YoutubePlayer.Utils {
                 _ => "",
             };
             
-            return $"{CLASS_NAME.SetClassPrefix()}" +
+            string className = GetCallerClassName();
+            return $"{className.SetClassPrefix(logType)}" +
                    $"{type.SetLogPrefix(logType)}" +
                    $"{message.SetMessagePrefix()}";
         }

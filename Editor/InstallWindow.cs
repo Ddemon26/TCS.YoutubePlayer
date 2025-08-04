@@ -79,10 +79,29 @@ namespace TCS.YoutubePlayer {
         async void YtldipUpdatePressed() {
             try {
                 if ( m_isOperationInProgress ) return;
+                
+                bool ytDlpExists = CheckYtDlpExists();
+                if ( !ytDlpExists ) {
+                    await InstallDependency( "yt-dlp", async () => await m_toolDownloadManager.EnsureYtDlpAsync( m_cancellationTokenSource.Token ) );
+                    return;
+                }
+
                 await UpdateDependency(
                     "yt-dlp", async () => {
-                        UninstallYtDlp();
-                        return await m_toolDownloadManager.EnsureYtDlpAsync( m_cancellationTokenSource.Token );
+                        var updateResult = await YtDlpExternalTool.UpdateYtDlpAsync( m_cancellationTokenSource.Token );
+                        switch (updateResult) {
+                            case YtDlpUpdateResult.Updated:
+                                Debug.Log("yt-dlp updated successfully");
+                                break;
+                            case YtDlpUpdateResult.AlreadyUpToDate:
+                                Debug.Log("yt-dlp is already up to date");
+                                break;
+                            case YtDlpUpdateResult.Failed:
+                                Debug.LogWarning("yt-dlp update failed, falling back to re-download");
+                                UninstallYtDlp();
+                                return await m_toolDownloadManager.EnsureYtDlpAsync( m_cancellationTokenSource.Token );
+                        }
+                        return YtDlpConfigurationManager.GetYtDlpPath();
                     }
                 );
             }

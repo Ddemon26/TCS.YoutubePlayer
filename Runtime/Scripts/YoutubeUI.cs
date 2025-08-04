@@ -40,7 +40,7 @@ public class YoutubeUI : MonoBehaviour {
             m_videoPlayer.PlayPlayback();
         }
         else {
-            Debug.LogWarning( "[YoutubeUI] YoutubePlayer is not initialized yet." );
+            Debug.LogWarning( "YoutubePlayer is not initialized yet." );
         }
     }
 
@@ -49,7 +49,7 @@ public class YoutubeUI : MonoBehaviour {
             m_videoPlayer.TogglePlayPause();
         }
         else {
-            Debug.LogWarning( "[YoutubeUI] YoutubePlayer is not initialized yet." );
+            Debug.LogWarning( "YoutubePlayer is not initialized yet." );
         }
     }
 
@@ -58,7 +58,7 @@ public class YoutubeUI : MonoBehaviour {
             m_videoPlayer.SkipBackward();
         }
         else {
-            Debug.LogWarning( "[YoutubeUI] YoutubePlayer is not initialized yet." );
+            Debug.LogWarning( "YoutubePlayer is not initialized yet." );
         }
     }
 
@@ -67,13 +67,13 @@ public class YoutubeUI : MonoBehaviour {
             m_videoPlayer.SkipForward();
         }
         else {
-            Debug.LogWarning( "[YoutubeUI] YoutubePlayer is not initialized yet." );
+            Debug.LogWarning( "YoutubePlayer is not initialized yet." );
         }
     }
 
     void SearchURLPressed(string url) {
         if ( !m_youtubePlayer.IsInitialized ) {
-            Debug.LogWarning( "[YoutubeUI] YoutubePlayer is not initialized yet." );
+            Debug.LogWarning( "YoutubePlayer is not initialized yet." );
             return;
         }
 

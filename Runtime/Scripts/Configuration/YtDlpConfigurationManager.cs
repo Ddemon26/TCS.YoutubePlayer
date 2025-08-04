@@ -46,8 +46,6 @@ namespace TCS.YoutubePlayer.Configuration {
         public async Task<string> EnsureFFmpegAsync(CancellationToken cancellationToken = default)
             => await m_toolDownloadManager.EnsureFFmpegAsync(cancellationToken);
         
-        public void Dispose() {
-            m_toolDownloadManager?.Dispose();
-        }
+        public void Dispose() => m_toolDownloadManager?.Dispose();
     }
 }
