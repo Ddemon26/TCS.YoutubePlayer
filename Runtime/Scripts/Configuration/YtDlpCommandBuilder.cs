@@ -13,9 +13,8 @@ namespace TCS.YoutubePlayer.Configuration {
     public class YtDlpCommandBuilder : IYtDlpCommandBuilder {
         readonly YtDlpSettings m_defaultSettings;
 
-        public YtDlpCommandBuilder(YtDlpSettings defaultSettings = null) {
-            m_defaultSettings = defaultSettings ?? new YtDlpSettings();
-        }
+        public YtDlpCommandBuilder(YtDlpSettings defaultSettings = null)
+            => m_defaultSettings = defaultSettings ?? new YtDlpSettings();
 
         public string BuildGetDirectUrlCommand(string videoUrl, YtDlpSettings settings = null) {
             var effectiveSettings = settings ?? m_defaultSettings;
@@ -277,16 +276,6 @@ namespace TCS.YoutubePlayer.Configuration {
                 AudioQuality.High => "mp3",
                 AudioQuality.Best => "best",
                 _ => "best",
-            };
-        }
-
-        static string GetSubtitleFormatString(SubtitleFormat format) {
-            return format switch {
-                SubtitleFormat.Srt => "srt",
-                SubtitleFormat.Ass => "ass",
-                SubtitleFormat.Vtt => "vtt",
-                SubtitleFormat.Best => "best",
-                _ => "",
             };
         }
 

@@ -1,8 +1,7 @@
 using System.IO;
 
 namespace TCS.YoutubePlayer.Configuration {
-    [Serializable]
-    public class YtDlpProfile {
+    [Serializable] public class YtDlpProfile {
         public string Name { get; set; }
         public string Description { get; set; }
         public YtDlpSettings Settings { get; set; }

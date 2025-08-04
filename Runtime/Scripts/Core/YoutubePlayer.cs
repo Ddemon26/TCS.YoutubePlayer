@@ -167,7 +167,7 @@ namespace TCS.YoutubePlayer {
                 if ( IsMp4Stream( directUrlAsync ) && m_isAllowedToDownload ) {
                     Logger.Log( $"Detected Mp4 stream: {directUrlAsync}" );
                     try {
-                        string mp4Path = await YtDlpExternalTool.ConvertToMp4Async( directUrlAsync, m_currentSettings, m_cts.Token );
+                        string mp4Path = await YtDlpExternalTool.ConvertToMp4Async( directUrlAsync, m_cts.Token );
                         if ( !string.IsNullOrEmpty( mp4Path ) ) {
                             Logger.Log( $"Preemptive conversion successful. Playing local file: {mp4Path}" );
                             m_videoPlayer.source = VideoSource.Url;

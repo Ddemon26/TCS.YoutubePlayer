@@ -5,8 +5,6 @@ namespace TCS.YoutubePlayer.Configuration {
 
     public enum BrowserType { None, Chrome, Firefox, Edge, Safari, Brave, Chromium, Custom, }
 
-    public enum SubtitleFormat { None, Srt, Ass, Vtt, Best, }
-
     public enum OutputFormat { Default, Mp4, Webm, Mkv, Avi, Flv, Custom, }
 
     public enum PlaylistHandling {
@@ -105,10 +103,6 @@ namespace TCS.YoutubePlayer.Configuration {
 
         public YtDlpSettings Clone() => new(new YtDlpSettingsData( m_data ));
 
-        // Direct access to data for ScriptableObjects and Inspector
-        public YtDlpSettingsData Data => m_data;
-
-        // Simplified fluent API that modifies a copy
         public YtDlpSettings With(Action<YtDlpSettingsData> configure) {
             var newData = new YtDlpSettingsData( m_data );
             configure( newData );

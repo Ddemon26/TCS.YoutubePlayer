@@ -124,7 +124,7 @@ namespace TCS.YoutubePlayer {
             return directUrl;
         }
 
-        public Task<string> ConvertToMp4Async(string hlsUrl, YtDlpSettings settings, CancellationToken cancellationToken) =>
+        public Task<string> ConvertToMp4Async(string hlsUrl, CancellationToken cancellationToken) =>
             m_mp4Converter.ConvertToMp4Async( hlsUrl, cancellationToken );
 
         public async Task<string> GetCurrentYtDlpVersionAsync(CancellationToken cancellationToken) {

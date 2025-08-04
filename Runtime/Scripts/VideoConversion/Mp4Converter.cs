@@ -106,9 +106,8 @@ namespace TCS.YoutubePlayer.VideoConversion {
             Logger.Log( $"HLS URL converted to MP4 at {outputFilePath}" );
         }
 
-        void AddToMp4Cache(string hlsUrl, string outputFilePath) {
-            m_mp4ConversionCache[hlsUrl] = new Mp4ConversionEntry( outputFilePath, DateTime.UtcNow );
-        }
+        void AddToMp4Cache(string hlsUrl, string outputFilePath)
+            => m_mp4ConversionCache[hlsUrl] = new Mp4ConversionEntry( outputFilePath, DateTime.UtcNow );
 
         static string SanitizeUrlToFileName(string url) {
             using var sha256 = SHA256.Create();

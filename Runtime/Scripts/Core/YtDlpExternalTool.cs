@@ -11,8 +11,8 @@ namespace TCS.YoutubePlayer {
         public static Task<string> GetDirectUrlAsync(string videoUrl, YtDlpSettings settings, CancellationToken cancellationToken) =>
             Service.GetDirectUrlAsync( videoUrl, settings, cancellationToken );
 
-        public static Task<string> ConvertToMp4Async(string hlsUrl, YtDlpSettings settings, CancellationToken cancellationToken) =>
-            Service.ConvertToMp4Async( hlsUrl, settings, cancellationToken );
+        public static Task<string> ConvertToMp4Async(string hlsUrl, CancellationToken cancellationToken) =>
+            Service.ConvertToMp4Async( hlsUrl, cancellationToken );
 
         public static Task<string> GetCurrentYtDlpVersionAsync(CancellationToken cancellationToken) =>
             Service.GetCurrentYtDlpVersionAsync( cancellationToken );
