@@ -15,11 +15,11 @@ namespace TCS.YoutubePlayer.Configuration {
         public static string GetYtDlpPath() {
             return Application.platform switch {
                 RuntimePlatform.WindowsPlayer or RuntimePlatform.WindowsEditor
-                    => Path.Combine(Application.streamingAssetsPath, "yt-dlp", "Windows", "yt-dlp.exe"),
+                    => Path.Combine( Application.streamingAssetsPath, "yt-dlp", "Windows", "yt-dlp.exe" ),
                 RuntimePlatform.OSXPlayer or RuntimePlatform.OSXEditor
-                    => Path.Combine(Application.streamingAssetsPath, "yt-dlp", "macOS", "yt-dlp"),
+                    => Path.Combine( Application.streamingAssetsPath, "yt-dlp", "macOS", "yt-dlp" ),
                 RuntimePlatform.LinuxPlayer or RuntimePlatform.LinuxEditor
-                    => Path.Combine(Application.streamingAssetsPath, "yt-dlp", "Linux", "yt-dlp"),
+                    => Path.Combine( Application.streamingAssetsPath, "yt-dlp", "Linux", "yt-dlp" ),
                 _ => throw new NotSupportedException(
                     $"Platform {Application.platform} is not supported for yt-dlp execution."
                 ),
@@ -29,23 +29,23 @@ namespace TCS.YoutubePlayer.Configuration {
         public static string GetFFmpegPath() {
             return Application.platform switch {
                 RuntimePlatform.WindowsPlayer or RuntimePlatform.WindowsEditor
-                    => Path.Combine(Application.streamingAssetsPath, "ffmpeg", "Windows", "bin", "ffmpeg.exe"),
+                    => Path.Combine( Application.streamingAssetsPath, "ffmpeg", "Windows", "bin", "ffmpeg.exe" ),
                 RuntimePlatform.OSXPlayer or RuntimePlatform.OSXEditor
-                    => Path.Combine(Application.streamingAssetsPath, "ffmpeg", "macOS", "bin", "ffmpeg"),
+                    => Path.Combine( Application.streamingAssetsPath, "ffmpeg", "macOS", "bin", "ffmpeg" ),
                 RuntimePlatform.LinuxPlayer or RuntimePlatform.LinuxEditor
-                    => Path.Combine(Application.streamingAssetsPath, "ffmpeg", "Linux", "bin", "ffmpeg"),
+                    => Path.Combine( Application.streamingAssetsPath, "ffmpeg", "Linux", "bin", "ffmpeg" ),
                 _ => throw new NotSupportedException(
                     $"Platform {Application.platform} is not supported for FFmpeg."
                 ),
             };
         }
-        
+
         public async Task<string> EnsureYtDlpAsync(CancellationToken cancellationToken = default)
-            => await m_toolDownloadManager.EnsureYtDlpAsync(cancellationToken);
+            => await m_toolDownloadManager.EnsureYtDlpAsync( cancellationToken );
 
         public async Task<string> EnsureFFmpegAsync(CancellationToken cancellationToken = default)
-            => await m_toolDownloadManager.EnsureFFmpegAsync(cancellationToken);
-        
+            => await m_toolDownloadManager.EnsureFFmpegAsync( cancellationToken );
+
         public void Dispose() => m_toolDownloadManager?.Dispose();
     }
 }

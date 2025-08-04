@@ -28,13 +28,13 @@ public class YoutubeUI : MonoBehaviour {
 
         m_videoPlayer.OnVideoStarted += VideoStarted;
     }
-    
+
     void VideoStarted() {
         m_youtubePlayerElement.ProgressMaxValue = m_videoPlayer.GetFullLength();
         m_youtubePlayerElement.ProgressMinValue = 0f;
         m_youtubePlayerElement.SetCurrentPlaying( m_youtubePlayer.Title );
     }
-    
+
     void PlayPressed() {
         if ( m_youtubePlayer.IsInitialized ) {
             m_videoPlayer.PlayPlayback();

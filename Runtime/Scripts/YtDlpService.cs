@@ -27,104 +27,104 @@ namespace TCS.YoutubePlayer {
         public YtDlpService() {
             m_configManager = new YtDlpConfigurationManager();
             m_urlProcessor = new YouTubeUrlProcessor();
-            m_urlCache = new YtDlpUrlCache(m_urlProcessor);
-            m_processExecutor = new ProcessExecutor(YtDlpConfigurationManager.GetFFmpegPath());
-            m_mp4Converter = new Mp4Converter(m_processExecutor, m_urlProcessor);
+            m_urlCache = new YtDlpUrlCache( m_urlProcessor );
+            m_processExecutor = new ProcessExecutor( YtDlpConfigurationManager.GetFFmpegPath() );
+            m_mp4Converter = new Mp4Converter( m_processExecutor, m_urlProcessor );
         }
 
         public async Task InitializeToolsAsync(CancellationToken cancellationToken = default) {
-            Logger.Log("[YtDlpService] Initializing external tools...");
-            
+            Logger.Log( "[YtDlpService] Initializing external tools..." );
+
             try {
-                Task<string> ytDlpTask = m_configManager.EnsureYtDlpAsync(cancellationToken);
-                Task<string> ffmpegTask = m_configManager.EnsureFFmpegAsync(cancellationToken);
-                
-                await Task.WhenAll(ytDlpTask, ffmpegTask);
-                
+                Task<string> ytDlpTask = m_configManager.EnsureYtDlpAsync( cancellationToken );
+                Task<string> ffmpegTask = m_configManager.EnsureFFmpegAsync( cancellationToken );
+
+                await Task.WhenAll( ytDlpTask, ffmpegTask );
+
                 string ytDlpPath = await ytDlpTask;
                 string ffmpegPath = await ffmpegTask;
-                
-                Logger.Log("[YtDlpService] Tools initialized successfully:");
-                Logger.Log($"[YtDlpService] yt-dlp: {ytDlpPath}");
-                Logger.Log($"[YtDlpService] ffmpeg: {ffmpegPath}");
+
+                Logger.Log( "[YtDlpService] Tools initialized successfully:" );
+                Logger.Log( $"[YtDlpService] yt-dlp: {ytDlpPath}" );
+                Logger.Log( $"[YtDlpService] ffmpeg: {ffmpegPath}" );
             }
             catch (Exception ex) {
-                Logger.LogError($"[YtDlpService] Failed to initialize external tools: {ex.Message}");
+                Logger.LogError( $"[YtDlpService] Failed to initialize external tools: {ex.Message}" );
                 throw;
             }
         }
 
-        public string GetCacheTitle(string videoUrl) => m_urlCache.GetCacheTitle(videoUrl);
+        public string GetCacheTitle(string videoUrl) => m_urlCache.GetCacheTitle( videoUrl );
 
         public async Task<string> GetDirectUrlAsync(string videoUrl, CancellationToken cancellationToken) {
-            await m_configManager.EnsureYtDlpAsync(cancellationToken);
-            YouTubeUrlProcessor.ValidateUrl(videoUrl);
+            await m_configManager.EnsureYtDlpAsync( cancellationToken );
+            YouTubeUrlProcessor.ValidateUrl( videoUrl );
 
-            string trimUrl = YouTubeUrlProcessor.TrimYouTubeUrl(videoUrl);
-            string cacheKey = m_urlProcessor.TryExtractVideoId(videoUrl) ?? videoUrl;
+            string trimUrl = YouTubeUrlProcessor.TrimYouTubeUrl( videoUrl );
+            string cacheKey = m_urlProcessor.TryExtractVideoId( videoUrl ) ?? videoUrl;
 
-            if (m_urlCache.TryGetCachedEntry(cacheKey, out var existingEntry)) {
+            if ( m_urlCache.TryGetCachedEntry( cacheKey, out var existingEntry ) ) {
                 return existingEntry.DirectUrl;
             }
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            if (string.IsNullOrEmpty(BROWSER_FOR_COOKIES)) {
+            if ( string.IsNullOrEmpty( BROWSER_FOR_COOKIES ) ) {
                 throw new YtDlpException(
                     "BrowserForCookies is not set. Please assign a valid browser name."
                 );
             }
 
-            var cookieArg = $" --cookies-from-browser \"{YouTubeUrlProcessor.SanitizeForShell(BROWSER_FOR_COOKIES)}\"";
-            string arguments = string.Format(YT_DLP_TITLE_ARGS_FORMAT, YouTubeUrlProcessor.SanitizeForShell(trimUrl)) + cookieArg;
+            var cookieArg = $" --cookies-from-browser \"{YouTubeUrlProcessor.SanitizeForShell( BROWSER_FOR_COOKIES )}\"";
+            string arguments = string.Format( YT_DLP_TITLE_ARGS_FORMAT, YouTubeUrlProcessor.SanitizeForShell( trimUrl ) ) + cookieArg;
 
             var result = await m_processExecutor.RunProcessAsync(
-                YtDlpConfigurationManager.GetYtDlpPath(), 
-                arguments, 
+                YtDlpConfigurationManager.GetYtDlpPath(),
+                arguments,
                 cancellationToken
             );
 
-            if (!result.IsSuccess) {
+            if ( !result.IsSuccess ) {
                 throw new ProcessExecutionException(
                     $"yt-dlp failed with exit code {result.ExitCode} for URL '{videoUrl}'.",
                     result.ExitCode, result.StandardOutput, result.StandardError
                 );
             }
-            
-            string[] lines = result.StandardOutput.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
-            if (lines.Length < 2) {
+
+            string[] lines = result.StandardOutput.Split( new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries );
+            if ( lines.Length < 2 ) {
                 throw new YtDlpException(
                     $"yt-dlp failed to return both title and URL for '{videoUrl}'.\nStdout: {result.StandardOutput}\nStderr: {result.StandardError}"
                 );
             }
-            
+
             string title = lines[0].Trim();
             string directUrl = lines[1].Trim();
 
-            if (string.IsNullOrWhiteSpace(directUrl) || !Uri.TryCreate(directUrl, UriKind.Absolute, out _)) {
-                throw new YtDlpException($"yt-dlp returned an invalid direct URL: {directUrl}");
+            if ( string.IsNullOrWhiteSpace( directUrl ) || !Uri.TryCreate( directUrl, UriKind.Absolute, out _ ) ) {
+                throw new YtDlpException( $"yt-dlp returned an invalid direct URL: {directUrl}" );
             }
-            
-            DateTime? expiresAt = YouTubeUrlProcessor.ParseExpiryFromUrl(directUrl);
-            m_urlCache.AddToCache(videoUrl, directUrl, title, expiresAt);
+
+            DateTime? expiresAt = YouTubeUrlProcessor.ParseExpiryFromUrl( directUrl );
+            m_urlCache.AddToCache( videoUrl, directUrl, title, expiresAt );
 
             return directUrl;
         }
 
         public Task<string> ConvertToMp4Async(string hlsUrl, CancellationToken cancellationToken) =>
-            m_mp4Converter.ConvertToMp4Async(hlsUrl, cancellationToken);
+            m_mp4Converter.ConvertToMp4Async( hlsUrl, cancellationToken );
 
         public async Task<string> GetCurrentYtDlpVersionAsync(CancellationToken cancellationToken) {
-            Logger.Log("[YtDlpService] Checking yt-dlp version...");
+            Logger.Log( "[YtDlpService] Checking yt-dlp version..." );
 
-            string ytDlpExecutablePath = await m_configManager.EnsureYtDlpAsync(cancellationToken);
+            string ytDlpExecutablePath = await m_configManager.EnsureYtDlpAsync( cancellationToken );
             var result = await m_processExecutor.RunProcessAsync(
                 ytDlpExecutablePath,
                 "--version",
                 cancellationToken
             );
 
-            if (!result.IsSuccess || string.IsNullOrWhiteSpace(result.StandardOutput)) {
+            if ( !result.IsSuccess || string.IsNullOrWhiteSpace( result.StandardOutput ) ) {
                 throw new YtDlpException(
                     $"yt-dlp --version failed with exit code {result.ExitCode}.\n" +
                     $"Stdout: {result.StandardOutput}\nStderr: {result.StandardError}"
@@ -132,28 +132,28 @@ namespace TCS.YoutubePlayer {
             }
 
             string version = result.StandardOutput
-                .Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries)[0]
+                .Split( new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries )[0]
                 .Trim();
-            Logger.Log($"[YtDlpService] Current yt-dlp version: {version}");
+            Logger.Log( $"[YtDlpService] Current yt-dlp version: {version}" );
             return version;
         }
 
         public async Task<YtDlpUpdateResult> UpdateYtDlpAsync(CancellationToken cancellationToken) {
-            Logger.Log("[YtDlpService] Attempting to update yt-dlp...");
+            Logger.Log( "[YtDlpService] Attempting to update yt-dlp..." );
 
-            string ytDlpExecutablePath = await m_configManager.EnsureYtDlpAsync(cancellationToken);
+            string ytDlpExecutablePath = await m_configManager.EnsureYtDlpAsync( cancellationToken );
             var result = await m_processExecutor.RunProcessAsync(
                 ytDlpExecutablePath,
                 "--update",
                 cancellationToken
             );
 
-            string stdout = result.StandardOutput.Replace("\r\n", "\n").Trim();
-            string stderr = result.StandardError.Replace("\r\n", "\n").Trim();
+            string stdout = result.StandardOutput.Replace( "\r\n", "\n" ).Trim();
+            string stderr = result.StandardError.Replace( "\r\n", "\n" ).Trim();
 
-            if (!result.IsSuccess) {
-                if (ContainsUpToDateMessage(stdout) || ContainsUpToDateMessage(stderr)) {
-                    Logger.Log("[YtDlpService] yt-dlp is already up to date.");
+            if ( !result.IsSuccess ) {
+                if ( ContainsUpToDateMessage( stdout ) || ContainsUpToDateMessage( stderr ) ) {
+                    Logger.Log( "[YtDlpService] yt-dlp is already up to date." );
                     return YtDlpUpdateResult.AlreadyUpToDate;
                 }
 
@@ -164,18 +164,18 @@ namespace TCS.YoutubePlayer {
                 return YtDlpUpdateResult.Failed;
             }
 
-            if (stdout.Contains("Updated yt-dlp to") || stdout.Contains("Successfully updated")) {
-                Logger.Log($"[YtDlpService] yt-dlp updated successfully: {stdout}");
+            if ( stdout.Contains( "Updated yt-dlp to" ) || stdout.Contains( "Successfully updated" ) ) {
+                Logger.Log( $"[YtDlpService] yt-dlp updated successfully: {stdout}" );
                 return YtDlpUpdateResult.Updated;
             }
 
-            if (ContainsUpToDateMessage(stdout) || ContainsUpToDateMessage(stderr)) {
-                Logger.Log("[YtDlpService] yt-dlp is already up to date.");
+            if ( ContainsUpToDateMessage( stdout ) || ContainsUpToDateMessage( stderr ) ) {
+                Logger.Log( "[YtDlpService] yt-dlp is already up to date." );
                 return YtDlpUpdateResult.AlreadyUpToDate;
             }
 
-            if (!string.IsNullOrWhiteSpace(stderr)) {
-                Logger.LogWarning($"[YtDlpService] yt-dlp --update exited 0 but had stderr:\n{stderr}");
+            if ( !string.IsNullOrWhiteSpace( stderr ) ) {
+                Logger.LogWarning( $"[YtDlpService] yt-dlp --update exited 0 but had stderr:\n{stderr}" );
             }
 
             Logger.LogWarning(
@@ -189,14 +189,14 @@ namespace TCS.YoutubePlayer {
         public async Task PerformYtDlpUpdateCheckAsync(CancellationToken cancellationToken) {
             var oldVersion = "unknown";
             try {
-                oldVersion = await GetCurrentYtDlpVersionAsync(cancellationToken);
-                Logger.Log($"[YtDlpService] Current yt-dlp version (before update): {oldVersion}");
+                oldVersion = await GetCurrentYtDlpVersionAsync( cancellationToken );
+                Logger.Log( $"[YtDlpService] Current yt-dlp version (before update): {oldVersion}" );
             }
             catch (YtDlpException ex) {
-                Logger.LogWarning($"[YtDlpService] Could not determine current yt-dlp version: {ex.Message}");
+                Logger.LogWarning( $"[YtDlpService] Could not determine current yt-dlp version: {ex.Message}" );
             }
             catch (OperationCanceledException) {
-                Logger.Log("[YtDlpService] Version check before update was canceled.");
+                Logger.Log( "[YtDlpService] Version check before update was canceled." );
                 throw;
             }
 
@@ -204,57 +204,58 @@ namespace TCS.YoutubePlayer {
 
             YtDlpUpdateResult updateResult;
             try {
-                updateResult = await UpdateYtDlpAsync(cancellationToken);
+                updateResult = await UpdateYtDlpAsync( cancellationToken );
             }
             catch (YtDlpException ex) {
-                Logger.LogError($"[YtDlpService] yt-dlp update threw an exception: {ex.Message}");
+                Logger.LogError( $"[YtDlpService] yt-dlp update threw an exception: {ex.Message}" );
                 updateResult = YtDlpUpdateResult.Failed;
             }
             catch (OperationCanceledException) {
-                Logger.Log("[YtDlpService] Update process was canceled.");
+                Logger.Log( "[YtDlpService] Update process was canceled." );
                 throw;
             }
 
             switch (updateResult) {
                 case YtDlpUpdateResult.Updated:
-                    Logger.Log("[YtDlpService] yt-dlp was updated.");
+                    Logger.Log( "[YtDlpService] yt-dlp was updated." );
                     try {
-                        string newVersion = await GetCurrentYtDlpVersionAsync(cancellationToken);
-                        Logger.Log($"[YtDlpService] New yt-dlp version (after update): {newVersion}");
-                        if (oldVersion != "unknown" && oldVersion == newVersion) {
+                        string newVersion = await GetCurrentYtDlpVersionAsync( cancellationToken );
+                        Logger.Log( $"[YtDlpService] New yt-dlp version (after update): {newVersion}" );
+                        if ( oldVersion != "unknown" && oldVersion == newVersion ) {
                             Logger.LogWarning(
                                 $"[YtDlpService] yt-dlp reported an update, but version remains {newVersion} (same as {oldVersion})."
                             );
                         }
                     }
                     catch (YtDlpException ex) {
-                        Logger.LogWarning($"[YtDlpService] Could not get version after update: {ex.Message}");
+                        Logger.LogWarning( $"[YtDlpService] Could not get version after update: {ex.Message}" );
                     }
                     catch (OperationCanceledException) {
-                        Logger.Log("[YtDlpService] Version check after update was canceled.");
+                        Logger.Log( "[YtDlpService] Version check after update was canceled." );
                     }
+
                     break;
 
                 case YtDlpUpdateResult.AlreadyUpToDate:
-                    Logger.Log($"[YtDlpService] yt-dlp is already at the latest version (was {oldVersion}).");
+                    Logger.Log( $"[YtDlpService] yt-dlp is already at the latest version (was {oldVersion})." );
                     break;
 
                 case YtDlpUpdateResult.Failed:
-                    Logger.LogError($"[YtDlpService] yt-dlp update failed. Version likely remains: {oldVersion}");
+                    Logger.LogError( $"[YtDlpService] yt-dlp update failed. Version likely remains: {oldVersion}" );
                     break;
-                    
+
                 default:
                     throw new ArgumentOutOfRangeException();
             }
         }
 
         static bool ContainsUpToDateMessage(string text) {
-            if (string.IsNullOrEmpty(text)) {
+            if ( string.IsNullOrEmpty( text ) ) {
                 return false;
             }
 
-            return text.Contains("is already the newest version", StringComparison.OrdinalIgnoreCase)
-                   || text.Contains("is up to date", StringComparison.OrdinalIgnoreCase);
+            return text.Contains( "is already the newest version", StringComparison.OrdinalIgnoreCase )
+                   || text.Contains( "is up to date", StringComparison.OrdinalIgnoreCase );
         }
 
         public void Dispose() {

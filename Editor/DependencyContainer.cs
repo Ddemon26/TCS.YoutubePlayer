@@ -83,11 +83,11 @@
         m_insallContainer.Add( m_installButton );
         m_insallContainer.Add( m_updateButton );
         m_insallContainer.Add( m_uninstallButton );
-        
+
         m_informationFoldout.value = false;
         SetInstallTextureResult( false );
     }
-    
+
     void SetElementClassNames() {
         AddToClassList( ClassNameUSS );
         m_root.AddToClassList( RootUSS );
@@ -130,12 +130,12 @@
 
     #region Public API
     public void SetInstallTextureResult(bool isInstalled)
-        => m_installTexture.style.unityBackgroundImageTintColor = isInstalled ? new StyleColor(Color.green) : new StyleColor(Color.red);
+        => m_installTexture.style.unityBackgroundImageTintColor = isInstalled ? new StyleColor( Color.green ) : new StyleColor( Color.red );
 
     public void SetHeaderText(string header) => m_header.text = header;
     public void SetInformationText(string info) => m_informationLabel.text = info;
     public void SetVersionValue(string version) => m_versionValueLabel.text = version;
-    public void ToggleCurrentVersionVisibility(bool isVisible) 
+    public void ToggleCurrentVersionVisibility(bool isVisible)
         => m_versionContainer.style.display = isVisible ? DisplayStyle.Flex : DisplayStyle.None;
     #endregion
 }

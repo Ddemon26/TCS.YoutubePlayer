@@ -30,19 +30,19 @@ namespace TCS.YoutubePlayer.ProcessExecution {
             CancellationToken cancellationToken,
             TimeSpan? timeout = null
         ) {
-            if (string.IsNullOrWhiteSpace(fileName)) {
-                throw new ArgumentException("File name cannot be null or empty", nameof(fileName));
+            if ( string.IsNullOrWhiteSpace( fileName ) ) {
+                throw new ArgumentException( "File name cannot be null or empty", nameof(fileName) );
             }
 
-            if (arguments == null) {
-                throw new ArgumentNullException(nameof(arguments));
+            if ( arguments == null ) {
+                throw new ArgumentNullException( nameof(arguments) );
             }
 
             // For ffmpeg commands, resolve the full path
-            if (fileName == "ffmpeg" && !string.IsNullOrEmpty(m_ffmpegPath)) {
+            if ( fileName == "ffmpeg" && !string.IsNullOrEmpty( m_ffmpegPath ) ) {
                 fileName = m_ffmpegPath;
             }
-            
+
             TaskCompletionSource<ProcessResult> tcs = new();
             var process = new Process {
                 StartInfo = {
@@ -58,58 +58,60 @@ namespace TCS.YoutubePlayer.ProcessExecution {
                 EnableRaisingEvents = true,
             };
 
-            SetEnvironmentVariables(process);
+            SetEnvironmentVariables( process );
 
             var stdoutBuilder = new StringBuilder();
             var stderrBuilder = new StringBuilder();
             CancellationTokenRegistration ctr = default;
             var startTime = DateTime.UtcNow;
-            
+
             // Set up timeout if specified - don't dispose until process completes
-            var timeoutCts = timeout.HasValue ? new CancellationTokenSource(timeout.Value) : null;
-            var linkedCts = timeoutCts != null 
-                ? CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutCts.Token)
+            var timeoutCts = timeout.HasValue ? new CancellationTokenSource( timeout.Value ) : null;
+            var linkedCts = timeoutCts != null
+                ? CancellationTokenSource.CreateLinkedTokenSource( cancellationToken, timeoutCts.Token )
                 : null;
             var combinedToken = linkedCts?.Token ?? cancellationToken;
 
-            if (combinedToken.CanBeCanceled) {
-                ctr = combinedToken.Register(() => {
-                    try {
-                        if (!process.HasExited) {
-                            process.Kill();
-                            
-                            string reason = timeoutCts?.Token.IsCancellationRequested == true 
-                                ? "timeout" 
-                                : "cancellation";
-                            Logger.LogWarning(
-                                $"Killed process {Path.GetFileName(fileName)} due to {reason}."
-                            );
+            if ( combinedToken.CanBeCanceled ) {
+                ctr = combinedToken.Register( () => {
+                        try {
+                            if ( !process.HasExited ) {
+                                process.Kill();
+
+                                string reason = timeoutCts?.Token.IsCancellationRequested == true
+                                    ? "timeout"
+                                    : "cancellation";
+                                Logger.LogWarning(
+                                    $"Killed process {Path.GetFileName( fileName )} due to {reason}."
+                                );
+                            }
+                        }
+                        catch (InvalidOperationException) {
+                            // Already exited
+                        }
+                        catch (Exception ex) {
+                            Logger.LogError( $"Exception trying to kill process: {ex.Message}" );
+                        }
+
+                        if ( timeoutCts?.Token.IsCancellationRequested == true ) {
+                            tcs.TrySetException( new TimeoutException( $"Process {Path.GetFileName( fileName )} timed out after {timeout}" ) );
+                        }
+                        else {
+                            tcs.TrySetCanceled( combinedToken );
                         }
                     }
-                    catch (InvalidOperationException) {
-                        // Already exited
-                    }
-                    catch (Exception ex) {
-                        Logger.LogError($"Exception trying to kill process: {ex.Message}");
-                    }
-
-                    if (timeoutCts?.Token.IsCancellationRequested == true) {
-                        tcs.TrySetException(new TimeoutException($"Process {Path.GetFileName(fileName)} timed out after {timeout}"));
-                    } else {
-                        tcs.TrySetCanceled(combinedToken);
-                    }
-                });
+                );
             }
 
             process.OutputDataReceived += (_, e) => {
-                if (e.Data != null) {
-                    stdoutBuilder.AppendLine(e.Data);
+                if ( e.Data != null ) {
+                    stdoutBuilder.AppendLine( e.Data );
                 }
             };
-            
+
             process.ErrorDataReceived += (_, e) => {
-                if (e.Data != null) {
-                    stderrBuilder.AppendLine(e.Data);
+                if ( e.Data != null ) {
+                    stderrBuilder.AppendLine( e.Data );
                 }
             };
 
@@ -117,40 +119,41 @@ namespace TCS.YoutubePlayer.ProcessExecution {
                 try {
                     var duration = DateTime.UtcNow - startTime;
                     var result = new ProcessResult(
-                        process.ExitCode, 
-                        stdoutBuilder.ToString(), 
+                        process.ExitCode,
+                        stdoutBuilder.ToString(),
                         stderrBuilder.ToString()
                     );
-                    
-                    Logger.LogPerformance($"Process {Path.GetFileName(fileName)}", duration);
-                    if (result.IsSuccess) {
-                        Logger.Log($"Process {Path.GetFileName(fileName)} completed successfully in {duration.TotalMilliseconds:F0}ms");
-                    } else {
-                        Logger.LogWarning($"Process {Path.GetFileName(fileName)} failed with exit code {result.ExitCode} after {duration.TotalMilliseconds:F0}ms");
+
+                    Logger.LogPerformance( $"Process {Path.GetFileName( fileName )}", duration );
+                    if ( result.IsSuccess ) {
+                        Logger.Log( $"Process {Path.GetFileName( fileName )} completed successfully in {duration.TotalMilliseconds:F0}ms" );
                     }
-                    
-                    tcs.TrySetResult(result);
+                    else {
+                        Logger.LogWarning( $"Process {Path.GetFileName( fileName )} failed with exit code {result.ExitCode} after {duration.TotalMilliseconds:F0}ms" );
+                    }
+
+                    tcs.TrySetResult( result );
                 }
                 catch (Exception ex) {
-                    Logger.LogError($"Exception in process exit handler: {ex.Message}");
-                    tcs.TrySetException(ex);
+                    Logger.LogError( $"Exception in process exit handler: {ex.Message}" );
+                    tcs.TrySetException( ex );
                 }
                 finally {
                     // Dispose resources in proper order
                     try {
-                        if (combinedToken.CanBeCanceled) {
+                        if ( combinedToken.CanBeCanceled ) {
                             ctr.Dispose();
                         }
                     }
                     catch (Exception ex) {
-                        Logger.LogError($"Exception disposing cancellation token registration: {ex.Message}");
+                        Logger.LogError( $"Exception disposing cancellation token registration: {ex.Message}" );
                     }
 
                     try {
                         process.Dispose();
                     }
                     catch (Exception ex) {
-                        Logger.LogError($"Exception disposing process: {ex.Message}");
+                        Logger.LogError( $"Exception disposing process: {ex.Message}" );
                     }
 
                     // Dispose cancellation token sources
@@ -159,45 +162,45 @@ namespace TCS.YoutubePlayer.ProcessExecution {
                         timeoutCts?.Dispose();
                     }
                     catch (Exception ex) {
-                        Logger.LogError($"Exception disposing cancellation token sources: {ex.Message}");
+                        Logger.LogError( $"Exception disposing cancellation token sources: {ex.Message}" );
                     }
                 }
             };
 
             try {
-                if (!File.Exists(fileName)) {
-                    throw new YtDlpException($"Executable not found: {fileName}");
+                if ( !File.Exists( fileName ) ) {
+                    throw new YtDlpException( $"Executable not found: {fileName}" );
                 }
 
-                if (!process.Start()) {
+                if ( !process.Start() ) {
                     tcs.TrySetException(
-                        new YtDlpException($"Failed to start process: {fileName}")
+                        new YtDlpException( $"Failed to start process: {fileName}" )
                     );
                     // Clean up resources since the process failed to start
-                    CleanupResources(ctr, process, linkedCts, timeoutCts, combinedToken);
+                    CleanupResources( ctr, process, linkedCts, timeoutCts, combinedToken );
                 }
                 else {
-                    Logger.Log($"Started process: {fileName} {arguments} (PID: {process.Id})");
+                    Logger.Log( $"Started process: {fileName} {arguments} (PID: {process.Id})" );
                     process.BeginOutputReadLine();
                     process.BeginErrorReadLine();
                 }
             }
             catch (Exception ex) {
-                Logger.LogError($"Exception launching '{fileName} {arguments}': {ex}");
+                Logger.LogError( $"Exception launching '{fileName} {arguments}': {ex}" );
                 tcs.TrySetException(
                     new YtDlpException(
-                        $"Failed to start process '{Path.GetFileName(fileName)}'. Exception: {ex.Message}", ex
+                        $"Failed to start process '{Path.GetFileName( fileName )}'. Exception: {ex.Message}", ex
                     )
                 );
                 // Clean up resources since the process failed to start
-                CleanupResources(ctr, process, linkedCts, timeoutCts, combinedToken);
+                CleanupResources( ctr, process, linkedCts, timeoutCts, combinedToken );
             }
 
             return tcs.Task;
         }
 
         void SetEnvironmentVariables(Process process) {
-            if (!string.IsNullOrEmpty(m_ffmpegPath)) {
+            if ( !string.IsNullOrEmpty( m_ffmpegPath ) ) {
                 #if UNITY_2020_1_OR_NEWER
                 process.StartInfo.Environment["FFMPEG_LOCATION"] = m_ffmpegPath;
                 #else
@@ -214,19 +217,19 @@ namespace TCS.YoutubePlayer.ProcessExecution {
             CancellationToken combinedToken
         ) {
             try {
-                if (combinedToken.CanBeCanceled) {
+                if ( combinedToken.CanBeCanceled ) {
                     ctr.Dispose();
                 }
             }
             catch (Exception ex) {
-                Logger.LogError($"Exception disposing cancellation token registration: {ex.Message}");
+                Logger.LogError( $"Exception disposing cancellation token registration: {ex.Message}" );
             }
 
             try {
                 process?.Dispose();
             }
             catch (Exception ex) {
-                Logger.LogError($"Exception disposing process: {ex.Message}");
+                Logger.LogError( $"Exception disposing process: {ex.Message}" );
             }
 
             try {
@@ -234,7 +237,7 @@ namespace TCS.YoutubePlayer.ProcessExecution {
                 timeoutCts?.Dispose();
             }
             catch (Exception ex) {
-                Logger.LogError($"Exception disposing cancellation token sources: {ex.Message}");
+                Logger.LogError( $"Exception disposing cancellation token sources: {ex.Message}" );
             }
         }
 
