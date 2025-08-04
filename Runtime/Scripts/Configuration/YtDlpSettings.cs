@@ -36,6 +36,8 @@ namespace TCS.YoutubePlayer.Configuration {
     [Serializable]
     public class YtDlpSettings {
         [SerializeField] YtDlpSettingsData m_data = new();
+        
+        public string GetSettingsSummary() => m_data.GetSettingsSummary();
 
         public VideoQuality VideoQuality => m_data.VideoQuality;
         public AudioQuality AudioQuality => m_data.AudioQuality;
@@ -49,9 +51,6 @@ namespace TCS.YoutubePlayer.Configuration {
         public OutputFormat OutputFormat => m_data.OutputFormat;
         public string CustomOutputFormat => m_data.CustomOutputFormat;
 
-        public SubtitleFormat SubtitleFormat => m_data.SubtitleFormat;
-        public List<string> SubtitleLanguages => new(m_data.SubtitleLanguages);
-
         public TimeSpan? Timeout => TimeSpan.FromMinutes( m_data.TimeoutMinutes );
         public TimeRange TimeRange => m_data.UseTimeRange ?
             new TimeRange( TimeSpan.FromSeconds( m_data.StartTimeSeconds ), TimeSpan.FromSeconds( m_data.EndTimeSeconds ) ) :
@@ -63,7 +62,6 @@ namespace TCS.YoutubePlayer.Configuration {
         public int MaxPlaylistItems => m_data.MaxPlaylistItems;
         public bool IgnoreErrors => m_data.IgnoreErrors;
         public bool UseHlsNative => m_data.UseHlsNative;
-        public bool EmbedSubtitles => m_data.EmbedSubtitles;
         public bool WriteInfoJson => m_data.WriteInfoJson;
 
         public int? ConcurrentFragments => m_data.ConcurrentFragments > 0 ? m_data.ConcurrentFragments : null;

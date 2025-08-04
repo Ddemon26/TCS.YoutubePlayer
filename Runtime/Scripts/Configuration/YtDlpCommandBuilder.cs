@@ -70,7 +70,6 @@ namespace TCS.YoutubePlayer.Configuration {
             args.Append( $"-o \"{outputPath}\" " );
 
             AppendBrowserSettings( args, effectiveSettings );
-            AppendSubtitleSettings( args, effectiveSettings );
             AppendNetworkSettings( args, effectiveSettings );
             AppendTimeRangeSettings( args, effectiveSettings );
             AppendPlaylistSettings( args, effectiveSettings );
@@ -160,26 +159,6 @@ namespace TCS.YoutubePlayer.Configuration {
             string audioFormat = GetAudioFormatFromQuality( settings.AudioQuality );
             if ( !string.IsNullOrEmpty( audioFormat ) ) {
                 args.Append( $"--audio-format {audioFormat} " );
-            }
-        }
-
-        static void AppendSubtitleSettings(StringBuilder args, YtDlpSettings settings) {
-            if ( settings.SubtitleFormat == SubtitleFormat.None ) return;
-
-            if ( settings.SubtitleLanguages.Any() ) {
-                string languages = string.Join( ",", settings.SubtitleLanguages );
-                args.Append( $"--sub-langs \"{languages}\" " );
-            }
-
-            string subtitleFormat = GetSubtitleFormatString( settings.SubtitleFormat );
-            if ( !string.IsNullOrEmpty( subtitleFormat ) ) {
-                args.Append( $"--sub-format \"{subtitleFormat}\" " );
-            }
-
-            args.Append( "--write-subs " );
-
-            if ( settings.EmbedSubtitles ) {
-                args.Append( "--embed-subs " );
             }
         }
 
