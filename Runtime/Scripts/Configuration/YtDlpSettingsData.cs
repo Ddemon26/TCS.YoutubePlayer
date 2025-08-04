@@ -22,6 +22,8 @@ namespace TCS.YoutubePlayer.Configuration {
         [Header( "Subtitles" )]
         public SubtitleFormat m_subtitleFormat = SubtitleFormat.None;
         public string[] m_subtitleLanguages = { "en" };
+        public SubtitleHandlingMode m_subtitleHandlingMode = SubtitleHandlingMode.None;
+        [Obsolete("Use m_subtitleHandlingMode instead. This will be removed in a future version.")]
         public bool m_embedSubtitles;
 
         [Header( "Download Settings" )]
@@ -63,6 +65,8 @@ namespace TCS.YoutubePlayer.Configuration {
         public string CustomOutputFormat => m_customOutputFormat;
         public SubtitleFormat SubtitleFormat => m_subtitleFormat;
         public string[] SubtitleLanguages => m_subtitleLanguages;
+        public SubtitleHandlingMode SubtitleHandlingMode => m_subtitleHandlingMode;
+        [Obsolete("Use SubtitleHandlingMode instead. This will be removed in a future version.")]
         public bool EmbedSubtitles => m_embedSubtitles;
         public bool ExtractAudioOnly => m_extractAudioOnly;
         public bool UsePlaylistIndex => m_usePlaylistIndex;
@@ -96,6 +100,7 @@ namespace TCS.YoutubePlayer.Configuration {
             m_customOutputFormat = other.m_customOutputFormat;
             m_subtitleFormat = other.m_subtitleFormat;
             m_subtitleLanguages = other.m_subtitleLanguages?.ToArray() ?? Array.Empty<string>();
+            m_subtitleHandlingMode = other.m_subtitleHandlingMode;
             m_embedSubtitles = other.m_embedSubtitles;
             m_extractAudioOnly = other.m_extractAudioOnly;
             m_usePlaylistIndex = other.m_usePlaylistIndex;

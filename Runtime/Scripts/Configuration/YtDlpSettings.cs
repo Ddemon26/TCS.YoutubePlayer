@@ -7,6 +7,13 @@ namespace TCS.YoutubePlayer.Configuration {
 
     public enum SubtitleFormat { None, Srt, Ass, Vtt, Best, }
 
+    public enum SubtitleHandlingMode {
+        None,           // No subtitle processing
+        UnityDisplay,   // Parse subtitles for Unity GUI display
+        EmbedSoft,      // Embed as selectable tracks (--embed-subs)
+        BurnHard        // Burn into video pixels with FFmpeg
+    }
+
     public enum OutputFormat { Default, Mp4, Webm, Mkv, Avi, Flv, Custom, }
 
     public enum PlaylistHandling {
@@ -50,6 +57,7 @@ namespace TCS.YoutubePlayer.Configuration {
 
         public SubtitleFormat SubtitleFormat => m_data.SubtitleFormat;
         public List<string> SubtitleLanguages => new(m_data.SubtitleLanguages);
+        public SubtitleHandlingMode SubtitleHandlingMode => m_data.SubtitleHandlingMode;
 
         public TimeSpan? Timeout => TimeSpan.FromMinutes( m_data.TimeoutMinutes );
         public TimeRange TimeRange => m_data.UseTimeRange ?

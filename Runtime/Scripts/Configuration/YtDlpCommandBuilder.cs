@@ -166,22 +166,48 @@ namespace TCS.YoutubePlayer.Configuration {
         }
 
         static void AppendSubtitleSettings(StringBuilder args, YtDlpSettings settings) {
-            if ( settings.SubtitleFormat == SubtitleFormat.None ) return;
+            // Handle the new SubtitleHandlingMode with backward compatibility
+            var handlingMode = settings.SubtitleHandlingMode;
+            
+            // Backward compatibility: if using old EmbedSubtitles flag, convert to new mode
+            if (handlingMode == SubtitleHandlingMode.None && settings.SubtitleFormat != SubtitleFormat.None) {
+                handlingMode = settings.EmbedSubtitles ? SubtitleHandlingMode.EmbedSoft : SubtitleHandlingMode.UnityDisplay;
+            }
 
+            // Early exit if no subtitle processing requested
+            if (handlingMode == SubtitleHandlingMode.None || settings.SubtitleFormat == SubtitleFormat.None) {
+                return;
+            }
+
+            // Set subtitle languages
             if ( settings.SubtitleLanguages.Any() ) {
                 string languages = string.Join( ",", settings.SubtitleLanguages );
                 args.Append( $"--sub-langs \"{languages}\" " );
             }
 
+            // Set subtitle format
             string subtitleFormat = GetSubtitleFormatString( settings.SubtitleFormat );
             if ( !string.IsNullOrEmpty( subtitleFormat ) ) {
                 args.Append( $"--sub-format \"{subtitleFormat}\" " );
             }
 
-            args.Append( "--write-subs " );
+            // Apply mode-specific commands
+            switch (handlingMode) {
+                case SubtitleHandlingMode.UnityDisplay:
+                    // Download subtitle files for Unity parsing - no embedding
+                    args.Append( "--write-subs " );
+                    break;
 
-            if ( settings.EmbedSubtitles ) {
-                args.Append( "--embed-subs " );
+                case SubtitleHandlingMode.EmbedSoft:
+                    // Download and embed as selectable tracks
+                    args.Append( "--write-subs --embed-subs " );
+                    break;
+
+                case SubtitleHandlingMode.BurnHard:
+                    // Download subtitle files for FFmpeg post-processing
+                    args.Append( "--write-subs " );
+                    Logger.Log("SubtitleHandlingMode.BurnHard: Subtitles will be downloaded for FFmpeg burning");
+                    break;
             }
         }
 

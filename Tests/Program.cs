@@ -280,11 +280,11 @@ public class Program {
             string audioCommand = commandBuilder.BuildGetDirectUrlCommand(testUrl, customSettings);
             LogTest("BuildGetDirectUrlCommand (audio-only)", !string.IsNullOrEmpty(audioCommand), $"Audio command: {audioCommand}");
 
-            // Test subtitle commands
+            // Test subtitle commands with new handling modes
             var subtitleSettings = settings.With(data => {
                 data.m_subtitleFormat = SubtitleFormat.Srt;
                 data.m_subtitleLanguages = new[] { "en", "es" };
-                data.m_embedSubtitles = true;
+                data.m_subtitleHandlingMode = SubtitleHandlingMode.EmbedSoft;
             });
 
             string directUrlWithSubs = commandBuilder.BuildGetDirectUrlCommand(testUrl, subtitleSettings);
@@ -304,6 +304,29 @@ public class Program {
             LogTest("BuildGetTitleCommand (with subtitles)", 
                 hasSubLangs && hasSubFormat && hasWriteSubs && hasEmbedSubs, 
                 $"Command includes subtitle flags: {titleWithSubs}");
+
+            // Test different subtitle handling modes
+            var unityDisplaySettings = settings.With(data => {
+                data.m_subtitleFormat = SubtitleFormat.Srt;
+                data.m_subtitleLanguages = new[] { "en" };
+                data.m_subtitleHandlingMode = SubtitleHandlingMode.UnityDisplay;
+            });
+
+            string unityDisplayCommand = commandBuilder.BuildGetDirectUrlCommand(testUrl, unityDisplaySettings);
+            bool hasWriteSubsOnly = unityDisplayCommand.Contains("--write-subs") && !unityDisplayCommand.Contains("--embed-subs");
+            LogTest("BuildGetDirectUrlCommand (UnityDisplay mode)", hasWriteSubsOnly, 
+                $"UnityDisplay command: {unityDisplayCommand}");
+
+            var burnHardSettings = settings.With(data => {
+                data.m_subtitleFormat = SubtitleFormat.Srt;
+                data.m_subtitleLanguages = new[] { "en" };
+                data.m_subtitleHandlingMode = SubtitleHandlingMode.BurnHard;
+            });
+
+            string burnHardCommand = commandBuilder.BuildGetDirectUrlCommand(testUrl, burnHardSettings);
+            bool hasBurnHardFlags = burnHardCommand.Contains("--write-subs") && !burnHardCommand.Contains("--embed-subs");
+            LogTest("BuildGetDirectUrlCommand (BurnHard mode)", hasBurnHardFlags, 
+                $"BurnHard command: {burnHardCommand}");
 
         }
         catch (Exception ex) {
