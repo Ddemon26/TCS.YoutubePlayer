@@ -84,3 +84,4 @@ Runtime/yt_dlp_url_cache.json.meta
 /Tests/bin~
 /Tests/obj
 /Tests/obj~
+!/Tests/*.csproj
