@@ -4,6 +4,13 @@
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Platform](https://img.shields.io/badge/Platform-Windows-lightgrey.svg)](https://docs.microsoft.com/en-us/windows/)
 
+[![Join our Discord](https://img.shields.io/badge/Discord-Join%20Us-7289DA?logo=discord&logoColor=white)](https://discord.gg/knwtcq3N2a)
+![Discord](https://img.shields.io/discord/1047781241010794506)
+![GitHub Forks](https://img.shields.io/github/forks/Ddemon26/TCS.YoutubePlayer)
+![GitHub Contributors](https://img.shields.io/github/contributors/Ddemon26/TCS.YoutubePlayer)
+![GitHub Stars](https://img.shields.io/github/stars/Ddemon26/TCS.YoutubePlayer)
+![GitHub Repo Size](https://img.shields.io/github/repo-size/Ddemon26/TCS.YoutubePlayer)
+
 A Unity package for YouTube video playback with automatic tool management, supporting both streaming and download functionalities.
 
 ## Features
