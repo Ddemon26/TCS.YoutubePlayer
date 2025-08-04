@@ -65,16 +65,6 @@ namespace TCS.YoutubePlayer {
             m_player.Play();
         }
 
-        /// <summary>
-        /// Stops video playback completely
-        /// </summary>
-        public void StopPlayback() {
-            if ( m_player == null || !m_player.isPrepared ) {
-                return;
-            }
-
-            m_player.Stop();
-        }
 
         public float GetPlaybackTime() {
             if ( !m_player || !m_player.isPrepared ) {

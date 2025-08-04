@@ -5,8 +5,7 @@ namespace TCS.YoutubePlayer.UrlProcessing {
             @"^.*(?:(?:youtu\.be\/|v\/|vi\/|u\/\w\/|embed\/|e\/)|(?:(?:watch)?\?v(?:i)?=|\&v(?:i)?=))([^#\&\?]{11}).*",
             RegexOptions.Compiled | RegexOptions.IgnoreCase
         );
-
-
+        
         public string TryExtractVideoId(string url) {
             if ( string.IsNullOrWhiteSpace( url ) ) {
                 return null;
