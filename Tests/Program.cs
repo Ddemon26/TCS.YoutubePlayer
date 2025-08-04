@@ -17,6 +17,7 @@ using TCS.YoutubePlayer.UrlProcessing;
 using TCS.YoutubePlayer.Configuration;
 using TCS.YoutubePlayer.Caching;
 using TCS.YoutubePlayer.Exceptions;
+using TCS.YoutubePlayer.Utils;
 
 public class Program {
     static readonly List<string> TestResults = new();
@@ -62,7 +63,7 @@ public class Program {
 
         // Test TrimYouTubeUrl
         foreach (string url in testUrls) {
-            string trimmed = YouTubeUrlProcessor.TrimYouTubeUrl(url);
+            string trimmed = UrlUtilities.TrimYouTubeUrl(url);
             LogTest($"TrimYouTubeUrl({url})", !string.IsNullOrEmpty(trimmed), $"Result: {trimmed}");
         }
 
@@ -74,7 +75,7 @@ public class Program {
 
         // Test URL validation
         try {
-            YouTubeUrlProcessor.ValidateUrl("https://www.youtube.com/watch?v=dQw4w9WgXcQ");
+            UrlUtilities.ValidateUrl("https://www.youtube.com/watch?v=dQw4w9WgXcQ");
             LogTest("ValidateUrl (valid URL)", true, "Validation passed");
         }
         catch (Exception ex) {
@@ -82,7 +83,7 @@ public class Program {
         }
 
         try {
-            YouTubeUrlProcessor.ValidateUrl("");
+            UrlUtilities.ValidateUrl("");
             LogTest("ValidateUrl (empty URL)", false, "Should have thrown exception");
         }
         catch (InvalidYouTubeUrlException) {
@@ -106,17 +107,17 @@ public class Program {
         };
 
         foreach (var kvp in testInputs) {
-            string sanitized = YouTubeUrlProcessor.SanitizeForShell(kvp.Key);
+            string sanitized = UrlUtilities.SanitizeForShell(kvp.Key);
             LogTest($"SanitizeForShell({kvp.Key})", sanitized == kvp.Value, $"Expected: {kvp.Value}, Got: {sanitized}");
         }
 
         // Test ParseExpiryFromUrl
         string urlWithExpiry = "https://example.com/video.mp4?expire=1640995200";
-        DateTime? expiry = YouTubeUrlProcessor.ParseExpiryFromUrl(urlWithExpiry);
+        DateTime? expiry = UrlUtilities.ParseExpiryFromUrl(urlWithExpiry);
         LogTest("ParseExpiryFromUrl (with expiry)", expiry.HasValue, $"Expiry: {expiry}");
 
         string urlWithoutExpiry = "https://example.com/video.mp4";
-        DateTime? noExpiry = YouTubeUrlProcessor.ParseExpiryFromUrl(urlWithoutExpiry);
+        DateTime? noExpiry = UrlUtilities.ParseExpiryFromUrl(urlWithoutExpiry);
         LogTest("ParseExpiryFromUrl (no expiry)", !noExpiry.HasValue, "No expiry found");
 
         Console.WriteLine();

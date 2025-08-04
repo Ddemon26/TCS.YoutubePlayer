@@ -1,6 +1,8 @@
 using System.IO;
 using System.Threading;
 using TCS.YoutubePlayer.Configuration;
+using TCS.YoutubePlayer.ToolManagement;
+using TCS.YoutubePlayer.Utils;
 using UnityEngine.Video;
 namespace TCS.YoutubePlayer {
     [RequireComponent( typeof(VideoPlayer) )]
@@ -227,27 +229,8 @@ namespace TCS.YoutubePlayer {
             }
         }
 
-        bool CheckYtDlpExists() {
-            try {
-                string ytDlpPath = LibraryManager.GetYtDlpPath();
-                return File.Exists( ytDlpPath );
-            }
-            catch (Exception e) {
-                Logger.LogError( $"Error checking yt-dlp path: {e.Message}" );
-                return false;
-            }
-        }
-
-        bool CheckFfmpegExists() {
-            try {
-                string ffmpegPath = LibraryManager.GetFFmpegPath();
-                return File.Exists( ffmpegPath );
-            }
-            catch (Exception e) {
-                Logger.LogError( $"Error checking ffmpeg path: {e.Message}" );
-                return false;
-            }
-        }
+        bool CheckYtDlpExists() => PlatformPathResolver.CheckLibraryExists( LibraryType.YtDlp );
+        bool CheckFfmpegExists() => PlatformPathResolver.CheckLibraryExists( LibraryType.FFmpeg );
 
         void OnDestroy() {
             try {

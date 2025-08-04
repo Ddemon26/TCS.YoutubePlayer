@@ -4,6 +4,7 @@ using TCS.YoutubePlayer.Configuration;
 using TCS.YoutubePlayer.ProcessExecution;
 using TCS.YoutubePlayer.UrlProcessing;
 using TCS.YoutubePlayer.VideoConversion;
+using TCS.YoutubePlayer.Utils;
 namespace TCS.YoutubePlayer {
     public enum YtDlpUpdateResult {
         Updated,
@@ -30,7 +31,7 @@ namespace TCS.YoutubePlayer {
             m_urlProcessor = new YouTubeUrlProcessor();
             m_urlCache = new YtDlpUrlCache( m_urlProcessor );
             m_processExecutor = new ProcessExecutor( LibraryManager.GetFFmpegPath() );
-            m_mp4Converter = new Mp4Converter( m_processExecutor, m_urlProcessor );
+            m_mp4Converter = new Mp4Converter( m_processExecutor );
         }
 
         public async Task InitializeToolsAsync(CancellationToken cancellationToken = default) {
@@ -59,9 +60,9 @@ namespace TCS.YoutubePlayer {
 
         public async Task<string> GetDirectUrlAsync(string videoUrl, YtDlpSettings settings, CancellationToken cancellationToken) {
             await m_configManager.EnsureYtDlpAsync( cancellationToken );
-            YouTubeUrlProcessor.ValidateUrl( videoUrl );
+            UrlUtilities.ValidateUrl( videoUrl );
 
-            string trimUrl = YouTubeUrlProcessor.TrimYouTubeUrl( videoUrl );
+            string trimUrl = UrlUtilities.TrimYouTubeUrl( videoUrl );
             string cacheKey = m_urlProcessor.TryExtractVideoId( videoUrl ) ?? videoUrl;
 
             if ( m_urlCache.TryGetCachedEntry( cacheKey, out var existingEntry ) ) {
@@ -85,8 +86,8 @@ namespace TCS.YoutubePlayer {
                     );
                 }
 
-                var cookieArg = $" --cookies-from-browser \"{YouTubeUrlProcessor.SanitizeForShell( BROWSER_FOR_COOKIES )}\"";
-                arguments = string.Format( YT_DLP_TITLE_ARGS_FORMAT, YouTubeUrlProcessor.SanitizeForShell( trimUrl ) ) + cookieArg;
+                var cookieArg = $" --cookies-from-browser \"{UrlUtilities.SanitizeForShell( BROWSER_FOR_COOKIES )}\"";
+                arguments = string.Format( YT_DLP_TITLE_ARGS_FORMAT, UrlUtilities.SanitizeForShell( trimUrl ) ) + cookieArg;
             }
 
             var result = await m_processExecutor.RunProcessAsync(
@@ -118,7 +119,7 @@ namespace TCS.YoutubePlayer {
                 throw new YtDlpException( $"yt-dlp returned an invalid direct URL: {directUrl}" );
             }
 
-            DateTime? expiresAt = YouTubeUrlProcessor.ParseExpiryFromUrl( directUrl );
+            DateTime? expiresAt = UrlUtilities.ParseExpiryFromUrl( directUrl );
             m_urlCache.AddToCache( videoUrl, directUrl, title, expiresAt );
 
             return directUrl;
