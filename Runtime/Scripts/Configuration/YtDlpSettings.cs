@@ -135,26 +135,15 @@ public class YtDlpSettings {
         m_data = new YtDlpSettingsData(settingsData);
     }
 
-    public YtDlpSettings(YtDlpSettingsAsset asset) {
-        if (asset) {
-            m_data = new YtDlpSettingsData(asset.Data);
-        }
-    }
+    public static YtDlpSettings CreateStreamingPreset() => new(YtDlpSettingsData.CreateStreaming());
 
-    public static YtDlpSettings CreateStreamingPreset()
-        => new(YtDlpSettingsData.CreateStreaming());
+    public static YtDlpSettings CreateDownloadPreset() => new(YtDlpSettingsData.CreateDownload());
 
-    public static YtDlpSettings CreateDownloadPreset()
-        => new(YtDlpSettingsData.CreateDownload());
+    public static YtDlpSettings CreateAudioOnlyPreset() => new(YtDlpSettingsData.CreateAudioOnly());
 
-    public static YtDlpSettings CreateAudioOnlyPreset()
-        => new(YtDlpSettingsData.CreateAudioOnly());
+    public static YtDlpSettings CreateHighQualityPreset() => new(YtDlpSettingsData.CreateHighQuality());
 
-    public static YtDlpSettings CreateHighQualityPreset()
-        => new(YtDlpSettingsData.CreateHighQuality());
-
-    public YtDlpSettings Clone()
-        => new(new YtDlpSettingsData( m_data ));
+    public YtDlpSettings Clone() => new(new YtDlpSettingsData( m_data ));
 
     // Direct access to data for ScriptableObjects and Inspector
     public YtDlpSettingsData Data => m_data;

@@ -1,4 +1,4 @@
-using TCS.YoutubePlayer;
+namespace TCS.YoutubePlayer;
 
 public class YoutubeUI : MonoBehaviour {
     [SerializeField] YoutubePlayer m_youtubePlayer;

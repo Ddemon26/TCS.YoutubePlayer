@@ -1,8 +1,7 @@
 using System.IO;
 using System.Threading;
-using UnityEngine.Video;
 using TCS.YoutubePlayer.Configuration;
-
+using UnityEngine.Video;
 namespace TCS.YoutubePlayer {
     [RequireComponent( typeof(VideoPlayer) )]
     public class YoutubePlayer : MonoBehaviour {

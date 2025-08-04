@@ -4,7 +4,6 @@ using TCS.YoutubePlayer.Configuration;
 using TCS.YoutubePlayer.ProcessExecution;
 using TCS.YoutubePlayer.UrlProcessing;
 using TCS.YoutubePlayer.VideoConversion;
-
 namespace TCS.YoutubePlayer {
     public enum YtDlpUpdateResult {
         Updated,
