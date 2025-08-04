@@ -65,9 +65,9 @@ namespace TCS.YoutubePlayer.ProcessExecution {
             CancellationTokenRegistration ctr = default;
             var startTime = DateTime.UtcNow;
             
-            // Set up timeout if specified
-            using var timeoutCts = timeout.HasValue ? new CancellationTokenSource(timeout.Value) : null;
-            using var linkedCts = timeoutCts != null 
+            // Set up timeout if specified - don't dispose until process completes
+            var timeoutCts = timeout.HasValue ? new CancellationTokenSource(timeout.Value) : null;
+            var linkedCts = timeoutCts != null 
                 ? CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutCts.Token)
                 : null;
             var combinedToken = linkedCts?.Token ?? cancellationToken;
@@ -96,7 +96,7 @@ namespace TCS.YoutubePlayer.ProcessExecution {
                     if (timeoutCts?.Token.IsCancellationRequested == true) {
                         tcs.TrySetException(new TimeoutException($"Process {Path.GetFileName(fileName)} timed out after {timeout}"));
                     } else {
-                        tcs.TrySetCanceled(cancellationToken);
+                        tcs.TrySetCanceled(combinedToken);
                     }
                 });
             }
@@ -136,11 +136,31 @@ namespace TCS.YoutubePlayer.ProcessExecution {
                     tcs.TrySetException(ex);
                 }
                 finally {
-                    if (combinedToken.CanBeCanceled) {
-                        ctr.Dispose();
+                    // Dispose resources in proper order
+                    try {
+                        if (combinedToken.CanBeCanceled) {
+                            ctr.Dispose();
+                        }
+                    }
+                    catch (Exception ex) {
+                        Logger.LogError($"[ProcessExecutor] Exception disposing cancellation token registration: {ex.Message}");
                     }
 
-                    process.Dispose();
+                    try {
+                        process.Dispose();
+                    }
+                    catch (Exception ex) {
+                        Logger.LogError($"[ProcessExecutor] Exception disposing process: {ex.Message}");
+                    }
+
+                    // Dispose cancellation token sources
+                    try {
+                        linkedCts?.Dispose();
+                        timeoutCts?.Dispose();
+                    }
+                    catch (Exception ex) {
+                        Logger.LogError($"[ProcessExecutor] Exception disposing cancellation token sources: {ex.Message}");
+                    }
                 }
             };
 
@@ -154,11 +174,7 @@ namespace TCS.YoutubePlayer.ProcessExecution {
                         new YtDlpException($"Failed to start process: {fileName}")
                     );
                     // Clean up resources since the process failed to start
-                    if (combinedToken.CanBeCanceled) {
-                        ctr.Dispose();
-                    }
-
-                    process.Dispose();
+                    CleanupResources(ctr, process, linkedCts, timeoutCts, combinedToken);
                 }
                 else {
                     Logger.Log($"[ProcessExecutor] Started process: {fileName} {arguments} (PID: {process.Id})");
@@ -174,16 +190,7 @@ namespace TCS.YoutubePlayer.ProcessExecution {
                     )
                 );
                 // Clean up resources since the process failed to start
-                try {
-                    if (combinedToken.CanBeCanceled) {
-                        ctr.Dispose();
-                    }
-
-                    process.Dispose();
-                }
-                catch (Exception disposeEx) {
-                    Logger.LogError($"[ProcessExecutor] Exception during cleanup: {disposeEx.Message}");
-                }
+                CleanupResources(ctr, process, linkedCts, timeoutCts, combinedToken);
             }
 
             return tcs.Task;
@@ -196,6 +203,38 @@ namespace TCS.YoutubePlayer.ProcessExecution {
                 #else
                 process.StartInfo.EnvironmentVariables["FFMPEG_LOCATION"] = m_ffmpegPath;
                 #endif
+            }
+        }
+
+        private static void CleanupResources(
+            CancellationTokenRegistration ctr,
+            Process process,
+            CancellationTokenSource linkedCts,
+            CancellationTokenSource timeoutCts,
+            CancellationToken combinedToken
+        ) {
+            try {
+                if (combinedToken.CanBeCanceled) {
+                    ctr.Dispose();
+                }
+            }
+            catch (Exception ex) {
+                Logger.LogError($"[ProcessExecutor] Exception disposing cancellation token registration: {ex.Message}");
+            }
+
+            try {
+                process?.Dispose();
+            }
+            catch (Exception ex) {
+                Logger.LogError($"[ProcessExecutor] Exception disposing process: {ex.Message}");
+            }
+
+            try {
+                linkedCts?.Dispose();
+                timeoutCts?.Dispose();
+            }
+            catch (Exception ex) {
+                Logger.LogError($"[ProcessExecutor] Exception disposing cancellation token sources: {ex.Message}");
             }
         }
 
