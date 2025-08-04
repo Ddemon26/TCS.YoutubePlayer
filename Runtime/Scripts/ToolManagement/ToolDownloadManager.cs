@@ -9,7 +9,7 @@ namespace TCS.YoutubePlayer.ToolManagement {
         YtDlp,
         FFmpeg,
     }
-    
+
     public class ToolDownloadManager : IDisposable {
         readonly HttpClient m_httpClient;
         readonly string m_toolsDirectory;
@@ -24,12 +24,12 @@ namespace TCS.YoutubePlayer.ToolManagement {
             m_toolsDirectory = Application.streamingAssetsPath;
             Directory.CreateDirectory( m_toolsDirectory );
         }
-        
+
         public string LibraryDirectory(LibraryType libraryType) {
             return libraryType switch {
-                LibraryType.YtDlp => Path.Combine(m_toolsDirectory, "yt-dlp"),
-                LibraryType.FFmpeg => Path.Combine(m_toolsDirectory, "ffmpeg"),
-                _ => throw new NotSupportedException($"Library type {libraryType} is not supported."),
+                LibraryType.YtDlp => Path.Combine( m_toolsDirectory, "yt-dlp" ),
+                LibraryType.FFmpeg => Path.Combine( m_toolsDirectory, "ffmpeg" ),
+                _ => throw new NotSupportedException( $"Library type {libraryType} is not supported." ),
             };
         }
 
