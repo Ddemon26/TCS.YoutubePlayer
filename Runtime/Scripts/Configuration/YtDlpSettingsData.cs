@@ -22,12 +22,12 @@ namespace TCS.YoutubePlayer.Configuration {
         [Header( "Subtitles" )]
         public SubtitleFormat m_subtitleFormat = SubtitleFormat.None;
         public string[] m_subtitleLanguages = { "en" };
-        public bool m_embedSubtitles = false;
+        public bool m_embedSubtitles;
 
         [Header( "Download Settings" )]
-        public bool m_extractAudioOnly = false;
-        public bool m_ignoreErrors = false;
-        public bool m_writeInfoJson = false;
+        public bool m_extractAudioOnly;
+        public bool m_ignoreErrors;
+        public bool m_writeInfoJson;
 
         [Header( "Playlist Settings" )]
         public bool m_usePlaylistIndex = true;
@@ -44,9 +44,9 @@ namespace TCS.YoutubePlayer.Configuration {
         public float m_timeoutMinutes = 5f;
 
         [Header( "Time Range" )]
-        public bool m_useTimeRange = false;
-        public float m_startTimeSeconds = 0f;
-        public float m_endTimeSeconds = 0f;
+        public bool m_useTimeRange;
+        public float m_startTimeSeconds;
+        public float m_endTimeSeconds;
 
         [Header( "Custom Arguments" )]
         [TextArea( 3, 5 )]

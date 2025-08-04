@@ -280,6 +280,31 @@ public class Program {
             string audioCommand = commandBuilder.BuildGetDirectUrlCommand(testUrl, customSettings);
             LogTest("BuildGetDirectUrlCommand (audio-only)", !string.IsNullOrEmpty(audioCommand), $"Audio command: {audioCommand}");
 
+            // Test subtitle commands
+            var subtitleSettings = settings.With(data => {
+                data.m_subtitleFormat = SubtitleFormat.Srt;
+                data.m_subtitleLanguages = new[] { "en", "es" };
+                data.m_embedSubtitles = true;
+            });
+
+            string directUrlWithSubs = commandBuilder.BuildGetDirectUrlCommand(testUrl, subtitleSettings);
+            bool hasSubLangs = directUrlWithSubs.Contains("--sub-langs \"en,es\"");
+            bool hasSubFormat = directUrlWithSubs.Contains("--sub-format \"srt\"");
+            bool hasWriteSubs = directUrlWithSubs.Contains("--write-subs");
+            bool hasEmbedSubs = directUrlWithSubs.Contains("--embed-subs");
+            LogTest("BuildGetDirectUrlCommand (with subtitles)", 
+                hasSubLangs && hasSubFormat && hasWriteSubs && hasEmbedSubs, 
+                $"Command includes subtitle flags: {directUrlWithSubs}");
+
+            string titleWithSubs = commandBuilder.BuildGetTitleCommand(testUrl, subtitleSettings);
+            hasSubLangs = titleWithSubs.Contains("--sub-langs \"en,es\"");
+            hasSubFormat = titleWithSubs.Contains("--sub-format \"srt\"");
+            hasWriteSubs = titleWithSubs.Contains("--write-subs");
+            hasEmbedSubs = titleWithSubs.Contains("--embed-subs");
+            LogTest("BuildGetTitleCommand (with subtitles)", 
+                hasSubLangs && hasSubFormat && hasWriteSubs && hasEmbedSubs, 
+                $"Command includes subtitle flags: {titleWithSubs}");
+
         }
         catch (Exception ex) {
             LogTest("Command builder tests", false, $"Command builder test failed: {ex.Message}");

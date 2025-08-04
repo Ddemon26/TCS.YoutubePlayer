@@ -29,6 +29,7 @@ namespace TCS.YoutubePlayer.Configuration {
             args.Append( "--no-warnings " );
 
             AppendBrowserSettings( args, effectiveSettings );
+            AppendSubtitleSettings( args, effectiveSettings );
             AppendNetworkSettings( args, effectiveSettings );
             AppendTimeRangeSettings( args, effectiveSettings );
             AppendPlaylistSettings( args, effectiveSettings );
@@ -48,6 +49,7 @@ namespace TCS.YoutubePlayer.Configuration {
             args.Append( "--no-warnings " );
 
             AppendBrowserSettings( args, effectiveSettings );
+            AppendSubtitleSettings( args, effectiveSettings );
             AppendCustomArguments( args, effectiveSettings );
 
             args.Append( $"\"{videoUrl}\"" );

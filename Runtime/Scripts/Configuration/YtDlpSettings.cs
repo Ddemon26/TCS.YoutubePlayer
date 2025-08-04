@@ -33,8 +33,7 @@ namespace TCS.YoutubePlayer.Configuration {
         public bool IsValid => Start.HasValue || End.HasValue;
     }
 
-    [Serializable]
-    public class YtDlpSettings {
+    [Serializable] public class YtDlpSettings {
         [SerializeField] YtDlpSettingsData m_data = new();
 
         public VideoQuality VideoQuality => m_data.VideoQuality;
@@ -107,7 +106,7 @@ namespace TCS.YoutubePlayer.Configuration {
 
         public YtDlpSettings Clone() => new(new YtDlpSettingsData( m_data ));
 
-        // Direct access to data for ScriptableObjects and Inspector
+        // Direct access to data for Inspector
         public YtDlpSettingsData Data => m_data;
 
         // Simplified fluent API that modifies a copy
