@@ -137,5 +137,10 @@
     public void SetVersionValue(string version) => m_versionValueLabel.text = version;
     public void ToggleCurrentVersionVisibility(bool isVisible)
         => m_versionContainer.style.display = isVisible ? DisplayStyle.Flex : DisplayStyle.None;
+    public void ToggleEnabled(bool isEnabled) {
+        m_installButton.SetEnabled( isEnabled );
+        m_updateButton.SetEnabled( isEnabled );
+        m_uninstallButton.SetEnabled( isEnabled );
+    }
     #endregion
 }

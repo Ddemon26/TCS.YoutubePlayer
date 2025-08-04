@@ -256,15 +256,9 @@ namespace TCS.YoutubePlayer {
             m_isOperationInProgress = inProgress;
 
             // Update button states
-            if ( m_ytlDipDependencyContainer != null ) {
-                // Note: DependencyContainer would need button enable/disable methods
-                // For now, we prevent multiple operations with the flag
-            }
+            m_ytlDipDependencyContainer?.ToggleEnabled( inProgress );
 
-            if ( m_ffmpegDependencyContainer != null ) {
-                // Note: DependencyContainer would need button enable/disable methods  
-                // For now, we prevent multiple operations with the flag
-            }
+            m_ffmpegDependencyContainer?.ToggleEnabled( inProgress );
         }
 
         static bool ValidatePlatformSupport() {
